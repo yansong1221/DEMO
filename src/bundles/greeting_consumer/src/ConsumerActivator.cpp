@@ -1,9 +1,10 @@
 #include <cppmicroservices/BundleActivator.h>
 #include <cppmicroservices/BundleContext.h>
 #include <cppmicroservices/ServiceTracker.h>
-#include "demo/IGreetingService.h"
+#include "service/IGreetingService.h"
 #include <iostream>
 using namespace cppmicroservices;
+using service::ITaskService;
 namespace demo {
     class ConsumerActivator : public BundleActivator {
         //std::unique_ptr<ServiceTracker<demo::IGreetingService>> m_tracker;

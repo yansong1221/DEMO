@@ -11,7 +11,7 @@ namespace spdlog {
 class logger;
 }
 
-namespace demo {
+namespace service {
 class ITaskService
 {
 public:
@@ -38,4 +38,4 @@ public:
     // 设置日志记录器，使服务能够直接输出日志
     virtual void setLogger(std::shared_ptr<spdlog::logger> logger) = 0;
 };
-} // namespace demo
+} // namespace service

@@ -1,7 +1,7 @@
 #include "demo/GreetingActivator.h"
+#include "common/Logger.h"
 
 #include <cppmicroservices/ServiceProperties.h>
-#include <cppmicroservices/logservice/LogService.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -151,14 +151,8 @@ void GreetingActivator::Start(BundleContext context)
 
     m_reg = context.RegisterService<ITaskService>(m_service, props);
 
-    auto ref    = context.GetServiceReference<cppmicroservices::logservice::LogService>();
-    auto logger = context.GetService(ref);
-
-    if (logger) {
-        auto l = logger->getLogger(context.GetBundle(), "3232");
-        l->info("GreetingActivator started and ITaskService registered.");
-    }
-
+    // 使用 Logger 输出日志
+    common::Logger::info(context, "GreetingActivator started and ITaskService registered.");
 
     std::cout << "GreetingActivator::Start" << std::endl;
 }

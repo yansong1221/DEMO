@@ -2,8 +2,8 @@
 #include "TaskServiceActionDelegate.h"
 #include "TaskServiceConfigDialog.h"
 
-#include <QHeaderView>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QInputDialog>
 #include <QItemSelectionModel>
 #include <QPushButton>
@@ -15,7 +15,7 @@
 #include <cppmicroservices/Framework.h>
 
 TaskServiceDockWidget::TaskServiceDockWidget(cppmicroservices::Framework* framework,
-                                               QWidget* parent)
+                                             QWidget* parent)
     : KDDockWidgets::QtWidgets::DockWidget(QStringLiteral("TaskServiceManager"))
     , m_framework(framework)
 {
@@ -39,18 +39,18 @@ TaskServiceDockWidget::~TaskServiceDockWidget()
 void TaskServiceDockWidget::setupUI()
 {
     auto* centralWidget = new QWidget(this);
-    auto* mainLayout = new QVBoxLayout(centralWidget);
+    auto* mainLayout    = new QVBoxLayout(centralWidget);
     mainLayout->setContentsMargins(4, 4, 4, 4);
     mainLayout->setSpacing(4);
 
     // 工具栏
     auto* toolbarLayout = new QHBoxLayout();
     toolbarLayout->setSpacing(4);
-    
+
     m_refreshServicesBtn = new QPushButton(tr("刷新服务"), this);
     toolbarLayout->addWidget(m_refreshServicesBtn);
     toolbarLayout->addStretch();
-    
+
     mainLayout->addLayout(toolbarLayout);
 
     // 任务服务表格
@@ -61,35 +61,38 @@ void TaskServiceDockWidget::setupUI()
     m_taskServiceView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_taskServiceView->verticalHeader()->setVisible(false);
     m_taskServiceView->horizontalHeader()->setStretchLastSection(true);
-    
+
     m_taskServiceModel = new TaskServiceTableModel(this);
     connect(m_taskServiceModel,
             &TaskServiceTableModel::serviceLog,
             this,
             &TaskServiceDockWidget::onTaskServiceLog);
     m_taskServiceModel->setFramework(m_framework);
-    
+
     m_taskServiceView->setModel(m_taskServiceModel);
     m_taskServiceView->horizontalHeader()->setStretchLastSection(false);
     m_taskServiceView->horizontalHeader()->setSectionResizeMode(TaskServiceTableModel::ColName,
-                                                                  QHeaderView::Stretch);
+                                                                QHeaderView::Stretch);
     m_taskServiceView->horizontalHeader()->setSectionResizeMode(TaskServiceTableModel::ColActions,
-                                                                  QHeaderView::Fixed);
+                                                                QHeaderView::Fixed);
     m_taskServiceView->setColumnWidth(TaskServiceTableModel::ColActions, 115);
-    
+
     m_taskServiceActionDelegate = new TaskServiceActionDelegate(m_taskServiceView);
     m_taskServiceView->setItemDelegateForColumn(TaskServiceTableModel::ColActions,
-                                                 m_taskServiceActionDelegate);
-    
+                                                m_taskServiceActionDelegate);
+
     mainLayout->addWidget(m_taskServiceView);
-    
+
     setWidget(centralWidget);
     setTitle(tr("任务服务"));
 }
 
 void TaskServiceDockWidget::setupConnections()
 {
-    connect(m_refreshServicesBtn, &QPushButton::clicked, this, &TaskServiceDockWidget::onRefreshTaskServices);
+    connect(m_refreshServicesBtn,
+            &QPushButton::clicked,
+            this,
+            &TaskServiceDockWidget::onRefreshTaskServices);
     connect(m_taskServiceActionDelegate,
             &TaskServiceActionDelegate::startStopRequested,
             this,
@@ -100,15 +103,11 @@ void TaskServiceDockWidget::setupConnections()
             &TaskServiceDockWidget::onTaskServiceConfigRequested);
 }
 
-void TaskServiceDockWidget::setLogTarget(QTextEdit* logEdit)
-{
-    m_logTarget = logEdit;
-}
-
 void TaskServiceDockWidget::refreshTaskServices()
 {
     m_taskServiceModel->refresh();
-    emit logMessage(tr("[任务服务] 已刷新，共发现 %1 个服务。").arg(m_taskServiceModel->rowCount()));
+    emit logMessage(
+        tr("[任务服务] 已刷新，共发现 %1 个服务。").arg(m_taskServiceModel->rowCount()));
 }
 
 void TaskServiceDockWidget::startTaskService(int row)
@@ -122,10 +121,7 @@ void TaskServiceDockWidget::startTaskService(int row)
         return;
     }
 
-    // 设置日志输出目标
-    entry->setLogTarget(m_logTarget);
-
-    bool ok = false;
+    bool ok           = false;
     const auto config = buildTaskServiceConfig(row, &ok);
     if (!ok) {
         return;
@@ -135,7 +131,7 @@ void TaskServiceDockWidget::startTaskService(int row)
     bool started = entry->startService(config);
     if (started) {
         emit logMessage(tr("[任务服务] %1 启动成功（线程已启动）。")
-                          .arg(QString::fromStdString(entry->service->name())));
+                            .arg(QString::fromStdString(entry->service->name())));
     }
     else {
         emit logMessage(
@@ -146,7 +142,7 @@ void TaskServiceDockWidget::startTaskService(int row)
     emit m_taskServiceModel->dataChanged(
         m_taskServiceModel->index(row, TaskServiceTableModel::ColStatus),
         m_taskServiceModel->index(row, TaskServiceTableModel::ColActions));
-    
+
     emit taskServiceStarted(row);
 }
 
@@ -165,7 +161,7 @@ void TaskServiceDockWidget::stopTaskService(int row)
     bool stopped = entry->stopService(5000); // 5秒超时
     if (stopped) {
         emit logMessage(tr("[任务服务] %1 已停止（线程已结束）。")
-                          .arg(QString::fromStdString(entry->service->name())));
+                            .arg(QString::fromStdString(entry->service->name())));
     }
     else {
         emit logMessage(
@@ -176,7 +172,7 @@ void TaskServiceDockWidget::stopTaskService(int row)
     emit m_taskServiceModel->dataChanged(
         m_taskServiceModel->index(row, TaskServiceTableModel::ColStatus),
         m_taskServiceModel->index(row, TaskServiceTableModel::ColActions));
-    
+
     emit taskServiceStopped(row);
 }
 
@@ -193,7 +189,7 @@ void TaskServiceDockWidget::configureTaskService(int row)
     if (dialog.exec() != QDialog::Accepted) {
         return;
     }
-    
+
     bool ok;
     QString configText = QInputDialog::getMultiLineText(
         this,
@@ -206,7 +202,8 @@ void TaskServiceDockWidget::configureTaskService(int row)
         return;
     }
 
-    emit logMessage(tr("[任务服务] 已更新配置：%1").arg(QString::fromStdString(entry->service->name())));
+    emit logMessage(
+        tr("[任务服务] 已更新配置：%1").arg(QString::fromStdString(entry->service->name())));
     emit taskServiceConfigured(row);
 }
 
@@ -222,8 +219,8 @@ int TaskServiceDockWidget::currentTaskServiceRow() const
     return cur.row();
 }
 
-std::shared_ptr<demo::ITaskService::IBasicConfig> TaskServiceDockWidget::buildTaskServiceConfig(
-    int row, bool* ok) const
+std::shared_ptr<service::ITaskService::IBasicConfig>
+TaskServiceDockWidget::buildTaskServiceConfig(int row, bool* ok) const
 {
     if (ok) {
         *ok = false;

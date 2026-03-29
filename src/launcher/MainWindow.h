@@ -5,12 +5,14 @@
 
 #include <cppmicroservices/Framework.h>
 #include <cppmicroservices/FrameworkEvent.h>
-#include <cppmicroservices/ServiceReference.h>
 #include <cppmicroservices/ListenerToken.h>
+#include <cppmicroservices/ServiceReference.h>
 #include <memory>
 
-#include "demo/IGreetingService.h"
-#include "demo/IWidgetService.h"
+#include <service/IGreetingService.h>
+#include <service/IWidgetService.h>
+
+using service::IWidgetService;
 
 class BundleManagerDockWidget;
 class TaskServiceDockWidget;
@@ -40,24 +42,23 @@ private:
     void setupConnections();
     void setupServiceListener();
     void setupLogService();
-    void appendLog(const QString& line);
 
     cppmicroservices::Framework m_framework;
-    
+
     // Dock widgets
     BundleManagerDockWidget* m_bundleManagerDock = nullptr;
-    TaskServiceDockWidget* m_taskServiceDock = nullptr;
-    
+    TaskServiceDockWidget* m_taskServiceDock     = nullptr;
+
     // Log widget (persistent central widget)
     LogWidget* m_logWidget = nullptr;
-    
+
     // LogService implementation
     std::shared_ptr<LogServiceImpl> m_logServiceImpl;
 
     struct PluginState
     {
-        cppmicroservices::ServiceReference<demo::IWidgetService> ref;
-        std::shared_ptr<demo::IWidgetService> service;
+        cppmicroservices::ServiceReference<IWidgetService> ref;
+        std::shared_ptr<IWidgetService> service;
         KDDockWidgets::QtWidgets::DockWidget* dock_w = nullptr;
     };
     std::vector<PluginState> m_Plugins;

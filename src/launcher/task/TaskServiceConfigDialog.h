@@ -1,13 +1,13 @@
 #pragma once
-#include "demo/IGreetingService.h"
 #include "imgui/QImguiWidget.h"
+#include "service/IGreetingService.h"
 #include <QDialog>
 
 class TaskServiceConfigWidget : public QImguiWidget
 {
     Q_OBJECT
 public:
-    explicit TaskServiceConfigWidget(std::shared_ptr<demo::ITaskService::IBasicConfig> config,
+    explicit TaskServiceConfigWidget(std::shared_ptr<service::ITaskService::IBasicConfig> config,
                                      QWidget* parent = nullptr);
     ~TaskServiceConfigWidget();
 
@@ -15,7 +15,7 @@ protected:
     void drawImgui() override;
 
 private:
-    std::shared_ptr<demo::ITaskService::IBasicConfig> config_;
+    std::shared_ptr<service::ITaskService::IBasicConfig> config_;
 };
 
 
@@ -23,6 +23,6 @@ class TaskServiceConfigDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit TaskServiceConfigDialog(std::shared_ptr<demo::ITaskService::IBasicConfig> config,
+    explicit TaskServiceConfigDialog(std::shared_ptr<service::ITaskService::IBasicConfig> config,
                                      QWidget* parent = nullptr);
 };

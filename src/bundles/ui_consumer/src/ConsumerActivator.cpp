@@ -1,4 +1,4 @@
-#include "demo/IWidgetService.h"
+#include "service/IWidgetService.h"
 #include <QLabel>
 #include <cppmicroservices/BundleActivator.h>
 #include <cppmicroservices/BundleContext.h>
@@ -8,7 +8,7 @@
 using namespace cppmicroservices;
 
 
-class UiImpl : public demo::IWidgetPlus
+class UiImpl : public service::IWidgetPlus
 {
 public:
     UiImpl() { w_ = new QLabel("Hello from the widget service!"); }
@@ -36,7 +36,7 @@ public:
     void Start(BundleContext context) override
     {
         m_service = std::make_shared<UiImpl>();
-        m_reg     = context.RegisterService<demo::IWidgetService>(m_service);
+        m_reg     = context.RegisterService<service::IWidgetService>(m_service);
     }
     void Stop(BundleContext) override
     {
@@ -45,8 +45,8 @@ public:
     }
 
 private:
-    cppmicroservices::ServiceRegistration<demo::IWidgetService> m_reg;
-    std::shared_ptr<demo::IWidgetService> m_service;
+    cppmicroservices::ServiceRegistration<service::IWidgetService> m_reg;
+    std::shared_ptr<service::IWidgetService> m_service;
 };
 } // namespace demo
 CPPMICROSERVICES_EXPORT_BUNDLE_ACTIVATOR(demo::ConsumerActivator)

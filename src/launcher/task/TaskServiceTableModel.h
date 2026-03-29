@@ -2,7 +2,9 @@
 
 #include "thread.hpp"
 
+#include "service/IGreetingService.h"
 #include <QAbstractTableModel>
+#include <QScopedPointer>
 #include <QString>
 #include <QTextEdit>
 #include <atomic>
@@ -11,12 +13,6 @@
 #include <cppmicroservices/ServiceEvent.h>
 #include <memory>
 #include <vector>
-#include <QScopedPointer>
-
-#include <spdlog/sinks/qt_sinks.h>
-#include <spdlog/spdlog.h>
-
-#include "demo/IGreetingService.h"
 
 namespace cppmicroservices {
 class Framework;
@@ -33,25 +29,19 @@ class TaskServiceEntry : public QObject, public Thread
 public:
     QString defaultConfigYaml;
 
-    cppmicroservices::ServiceReference<demo::ITaskService> m_ref;
-    std::shared_ptr<demo::ITaskService> service;
+    cppmicroservices::ServiceReference<service::ITaskService> m_ref;
+    std::shared_ptr<service::ITaskService> service;
 
     // 线程相关
-    std::shared_ptr<demo::ITaskService::IBasicConfig> config;
+    std::shared_ptr<service::ITaskService::IBasicConfig> config;
 
     TaskServiceEntry(QObject* parent = nullptr);
     ~TaskServiceEntry() override;
 
     // 启动服务线程
-    bool startService(std::shared_ptr<demo::ITaskService::IBasicConfig> cfg);
+    bool startService(std::shared_ptr<service::ITaskService::IBasicConfig> cfg);
     // 停止服务线程
     bool stopService(uint32_t millisecond = 5000);
-
-    // 获取 logger
-    std::shared_ptr<spdlog::logger> logger() const;
-
-    // 设置日志输出目标
-    void setLogTarget(QTextEdit* textEdit);
 
     QString serviceBundleName() const;
 
@@ -121,12 +111,9 @@ private:
     void handleServiceUnregistering(cppmicroservices::ServiceReferenceBase const& ref);
     void handleServiceModified(cppmicroservices::ServiceReferenceBase const& ref);
     int findEntryIndexByServiceReference(
-        cppmicroservices::ServiceReference<demo::ITaskService> const& ref) const;
-    QString getServiceId(cppmicroservices::ServiceReference<demo::ITaskService> const& ref) const;
+        cppmicroservices::ServiceReference<service::ITaskService> const& ref) const;
 
-    QString defaultTaskConfigYaml(std::shared_ptr<demo::ITaskService> const& service) const;
-    QString displayTaskServiceName(std::shared_ptr<demo::ITaskService> const& service,
-                                   QString const& fallback) const;
+    QString defaultTaskConfigYaml(std::shared_ptr<service::ITaskService> const& service) const;
 
     cppmicroservices::Framework* m_framework = nullptr;
     cppmicroservices::ListenerToken m_listenerToken;

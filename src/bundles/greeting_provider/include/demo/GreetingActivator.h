@@ -2,9 +2,11 @@
 #include <cppmicroservices/BundleActivator.h>
 #include <cppmicroservices/BundleContext.h>
 #include <cppmicroservices/ServiceRegistration.h>
-#include "demo/IGreetingService.h"
+#include "service/IGreetingService.h"
 #include <memory>
+
 namespace demo {
+using service::ITaskService;
 
 class GreetingActivator : public cppmicroservices::BundleActivator {
 public:

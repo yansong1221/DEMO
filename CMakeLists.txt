@@ -5,9 +5,6 @@ project(CppMicroServicesDemo LANGUAGES CXX)
 # 添加 cmake 模块路径
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-# 包含 Bundle 工具模块
-include(BundleUtils)
-
 # 检测是否为顶层项目
 get_directory_property(_HAS_PARENT PARENT_DIRECTORY)
 if(_HAS_PARENT)
@@ -44,6 +41,7 @@ find_package(CppMicroServices REQUIRED CONFIG)
 include(FetchImGui)
 
 
-add_subdirectory(src/service/service_interface)
+add_subdirectory(src/common)
+add_subdirectory(src/service)
 add_subdirectory(src/bundles)
 add_subdirectory(src/launcher)

@@ -4,7 +4,7 @@
 #include <QVBoxLayout>
 
 TaskServiceConfigWidget::TaskServiceConfigWidget(
-    std::shared_ptr<demo::ITaskService::IBasicConfig> config, QWidget* parent /*= nullptr*/)
+    std::shared_ptr<service::ITaskService::IBasicConfig> config, QWidget* parent /*= nullptr*/)
     : QImguiWidget(parent)
     , config_(config)
 {
@@ -20,7 +20,7 @@ void TaskServiceConfigWidget::drawImgui()
 }
 
 TaskServiceConfigDialog::TaskServiceConfigDialog(
-    std::shared_ptr<demo::ITaskService::IBasicConfig> config, QWidget* parent /*= nullptr*/)
+    std::shared_ptr<service::ITaskService::IBasicConfig> config, QWidget* parent /*= nullptr*/)
     : QDialog(parent)
 {
     auto content = new TaskServiceConfigWidget(config, this);

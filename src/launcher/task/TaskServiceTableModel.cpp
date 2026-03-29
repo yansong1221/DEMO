@@ -31,42 +31,6 @@ TaskServiceEntry::~TaskServiceEntry()
     stopService();
 }
 
-void TaskServiceEntry::setupLogger(const std::string& pluginName)
-{
-    // logger 会在 setLogTarget 中创建
-}
-
-std::shared_ptr<spdlog::logger> TaskServiceEntry::logger() const
-{
-    return m_logger;
-}
-
-void TaskServiceEntry::setLogTarget(QTextEdit* textEdit)
-{
-    if (!textEdit) {
-        return;
-    }
-
-    // 使用 spdlog 的 qt_color_logger_mt 创建带颜色的 logger（支持 QTextEdit）
-    std::string loggerName = service->name();
-    if (loggerName.empty()) {
-        loggerName = "TaskService_" + std::to_string(reinterpret_cast<uintptr_t>(this));
-    }
-
-    // 创建 logger，最大保留 1000 行，支持 UTF-8
-    m_logger = spdlog::qt_color_logger_mt(loggerName, textEdit, 1000, true);
-
-    // 设置 pattern，包含插件名字前缀
-    // 格式: [插件名] [时间] [级别] 消息
-    m_logger->set_pattern("[" + service->name() + "] [%Y-%m-%d %H:%M:%S] [%^%l%$] %v");
-    m_logger->set_level(spdlog::level::debug);
-
-    // 将 logger 传递给 ITaskService，使其能够直接输出日志
-    if (service) {
-        service->setLogger(m_logger);
-    }
-}
-
 QString TaskServiceEntry::serviceBundleName() const
 {
     try {
@@ -80,7 +44,7 @@ QString TaskServiceEntry::serviceBundleName() const
     return {};
 }
 
-bool TaskServiceEntry::startService(std::shared_ptr<demo::ITaskService::IBasicConfig> cfg)
+bool TaskServiceEntry::startService(std::shared_ptr<service::ITaskService::IBasicConfig> cfg)
 {
     if (!service) {
         return false;
@@ -241,7 +205,7 @@ void TaskServiceTableModel::refresh()
     if (m_framework) {
         try {
             auto ctx        = m_framework->GetBundleContext();
-            const auto refs = ctx.GetServiceReferences<demo::ITaskService>();
+            const auto refs = ctx.GetServiceReferences<service::ITaskService>();
             for (auto const& ref : refs) {
                 handleServiceRegistered(ref);
             }
@@ -323,7 +287,7 @@ void TaskServiceTableModel::handleServiceRegistered(
 
     try {
         auto ctx     = m_framework->GetBundleContext();
-        auto service = ctx.GetService<demo::ITaskService>(ref);
+        auto service = ctx.GetService<service::ITaskService>(ref);
         if (!service) {
             return;
         }
@@ -425,7 +389,7 @@ void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceRefer
 
     try {
         auto ctx     = m_framework->GetBundleContext();
-        auto service = ctx.GetService<demo::ITaskService>(ref);
+        auto service = ctx.GetService<service::ITaskService>(ref);
         if (!service) {
             return;
         }
@@ -442,7 +406,7 @@ void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceRefer
 }
 
 int TaskServiceTableModel::findEntryIndexByServiceReference(
-    cppmicroservices::ServiceReference<demo::ITaskService> const& ref) const
+    cppmicroservices::ServiceReference<service::ITaskService> const& ref) const
 {
     if (!m_framework) {
         return -1;
@@ -468,23 +432,9 @@ int TaskServiceTableModel::findEntryIndexByServiceReference(
     return -1;
 }
 
-QString TaskServiceTableModel::getServiceId(
-    cppmicroservices::ServiceReference<demo::ITaskService> const& ref) const
-{
-    try {
-        // 使用 bundle ID 和服务接口组合作为唯一标识
-        auto bundle = ref.GetBundle();
-        if (bundle) {
-            return QString::number(bundle.GetBundleId());
-        }
-    }
-    catch (...) {
-    }
-    return {};
-}
 
 QString TaskServiceTableModel::defaultTaskConfigYaml(
-    std::shared_ptr<demo::ITaskService> const& service) const
+    std::shared_ptr<service::ITaskService> const& service) const
 {
     if (!service) {
         return {};
@@ -500,24 +450,6 @@ QString TaskServiceTableModel::defaultTaskConfigYaml(
     return QString::fromStdString(YAML::Dump(conf)).trimmed();
 }
 
-QString TaskServiceTableModel::displayTaskServiceName(
-    std::shared_ptr<demo::ITaskService> const& service, QString const& fallback) const
-{
-    if (!service) {
-        return fallback;
-    }
-
-    auto config = service->createYamlConfig();
-    if (!config) {
-        return fallback;
-    }
-
-    const auto displayName = config->displayName();
-    if (!displayName || displayName->empty()) {
-        return fallback;
-    }
-    return fromStdString(*displayName);
-}
 
 TaskServiceEntry* TaskServiceTableModel::entryAt(int row)
 {

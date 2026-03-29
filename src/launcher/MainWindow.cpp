@@ -4,6 +4,8 @@
 #include "log/LogWidget.h"
 #include "log/LogServiceImpl.h"
 
+#include <common/Logger.h>
+
 #include <QCloseEvent>
 #include <QCoreApplication>
 #include <QVBoxLayout>
@@ -29,7 +31,8 @@ MainWindow::MainWindow(QWidget* parent)
     setupConnections();
     setupServiceListener();
 
-    appendLog(tr("框架已启动，支持 Bundle 管理和 ITaskService 服务发现。"));
+    // 使用 Logger 输出启动日志（非信号方式）
+    common::Logger::info(m_framework, "框架已启动，支持 Bundle 管理和 ITaskService 服务发现。");
 }
 
 MainWindow::~MainWindow()
@@ -109,7 +112,7 @@ void MainWindow::setupServiceListener()
 
             if (type & cppmicroservices::ServiceEvent::SERVICE_REGISTERED) {
                 auto ctx     = m_framework.GetBundleContext();
-                auto service = ctx.GetService<demo::IWidgetService>(eventRef);
+                auto service = ctx.GetService<IWidgetService>(eventRef);
                 if (!service) {
                     return;
                 }
@@ -168,14 +171,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
     KDDockWidgets::QtWidgets::MainWindow::closeEvent(event);
 }
 
-void MainWindow::appendLog(const QString& line)
-{
-    if (m_logWidget) {
-        m_logWidget->addLog(2, "host_app", line); // 2 = INFO level
-    }
-}
-
 void MainWindow::onLogMessage(const QString& message)
 {
-    appendLog(message);
+    // 转发信号日志到 Logger
+    common::Logger::info(m_framework, message.toStdString());
 }

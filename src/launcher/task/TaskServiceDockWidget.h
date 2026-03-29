@@ -30,8 +30,6 @@ public:
     void stopTaskService(int row);
     void configureTaskService(int row);
 
-    void setLogTarget(QTextEdit* logEdit);
-
 signals:
     void logMessage(const QString& message);
     void taskServiceStarted(int row);
@@ -48,11 +46,10 @@ private:
     void setupUI();
     void setupConnections();
     int currentTaskServiceRow() const;
-    std::shared_ptr<demo::ITaskService::IBasicConfig> buildTaskServiceConfig(int row,
+    std::shared_ptr<service::ITaskService::IBasicConfig> buildTaskServiceConfig(int row,
                                                                              bool* ok) const;
 
     cppmicroservices::Framework* m_framework = nullptr;
-    QTextEdit* m_logTarget = nullptr;
     
     // UI elements
     QPushButton* m_refreshServicesBtn = nullptr;
