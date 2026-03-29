@@ -27,11 +27,11 @@ MainWindow::MainWindow(QWidget* parent)
 
     setupUI();
     setupLogService();
-    // 初始化全局 Logger（只需设置一次）
+
     common::Logger::init(m_framework.GetBundleContext());
 
-    setupDockWidgets();
     setupServiceListener();
+    setupDockWidgets();
 
     // 使用 Logger 输出启动日志（无需传入 context）
     common::Logger::info("框架已启动，支持 Bundle 管理和 ITaskService 服务发现。");
@@ -161,4 +161,3 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     KDDockWidgets::QtWidgets::MainWindow::closeEvent(event);
 }
-

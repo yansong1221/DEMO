@@ -1,6 +1,6 @@
 #pragma once
 #include "imgui/QImguiWidget.h"
-#include "service/IGreetingService.h"
+#include "service/ITaskService.h"
 #include <QDialog>
 
 class TaskServiceConfigWidget : public QImguiWidget

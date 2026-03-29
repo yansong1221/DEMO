@@ -2,7 +2,7 @@
 
 #include "thread.hpp"
 
-#include "service/IGreetingService.h"
+#include "service/ITaskService.h"
 #include <QAbstractTableModel>
 #include <QScopedPointer>
 #include <QString>

@@ -2,7 +2,7 @@
 #include <cppmicroservices/BundleActivator.h>
 #include <cppmicroservices/BundleContext.h>
 #include <cppmicroservices/ServiceRegistration.h>
-#include "service/IGreetingService.h"
+#include "service/ITaskService.h"
 #include <memory>
 
 namespace demo {

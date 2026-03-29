@@ -9,7 +9,7 @@
 #include <cppmicroservices/ServiceReference.h>
 #include <memory>
 
-#include <service/IGreetingService.h>
+#include <service/ITaskService.h>
 #include <service/IWidgetService.h>
 
 using service::IWidgetService;

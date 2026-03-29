@@ -1,7 +1,7 @@
 #include <cppmicroservices/BundleActivator.h>
 #include <cppmicroservices/BundleContext.h>
 #include <cppmicroservices/ServiceTracker.h>
-#include "service/IGreetingService.h"
+#include "service/ITaskService.h"
 #include <iostream>
 using namespace cppmicroservices;
 using service::ITaskService;
