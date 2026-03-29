@@ -1,42 +1,18 @@
 #include "common/Logger.h"
 
+#include <cppmicroservices/Bundle.h>
+
 namespace common {
 
 // 静态成员定义
-cppmicroservices::BundleContext Logger::s_globalContext;
+static std::shared_ptr<cppmicroservices::logservice::Logger> s_logger;
+static cppmicroservices::BundleContext s_context;
+static std::mutex s_mutex;
 
-// ========== 全局初始化 ==========
+namespace detail {
 
-void Logger::init(cppmicroservices::BundleContext context)
-{
-    s_globalContext = context;
-}
-
-void Logger::reset()
-{
-    s_globalContext = nullptr;
-}
-
-bool Logger::isInitialized()
-{
-    return (bool)s_globalContext;
-}
-
-// ========== LogService 获取（所有实现）==========
-
-std::vector<cppmicroservices::ServiceReference<cppmicroservices::logservice::LogService>>
-Logger::getLogServiceRefs(cppmicroservices::BundleContext context)
-{
-    if (!context)
-        return {};
-
-    return context.GetServiceReferences<cppmicroservices::logservice::LogService>();
-}
-
-// ========== LoggerFactory 获取 ==========
-
-std::shared_ptr<cppmicroservices::logservice::LoggerFactory>
-Logger::getLoggerFactory(cppmicroservices::BundleContext context)
+static std::shared_ptr<cppmicroservices::logservice::LoggerFactory>
+getLoggerFactory(cppmicroservices::BundleContext context)
 {
     if (!context)
         return nullptr;
@@ -47,91 +23,67 @@ Logger::getLoggerFactory(cppmicroservices::BundleContext context)
     }
     return context.GetService<cppmicroservices::logservice::LoggerFactory>(ref);
 }
-
-// ========== getLogger 重载 ==========
-
-std::shared_ptr<cppmicroservices::logservice::Logger>
-Logger::getLogger(cppmicroservices::BundleContext context, const std::string& name)
+// ========== 从 BundleContext/Framework 获取 Logger ==========
+static std::shared_ptr<cppmicroservices::logservice::Logger>
+getLogger(cppmicroservices::BundleContext context,
+          const std::string& name = cppmicroservices::logservice::LoggerFactory::ROOT_LOGGER_NAME)
 {
     auto factory = getLoggerFactory(context);
     if (!factory) {
         return nullptr;
     }
-    return factory->getLogger(name);
+    return factory->getLogger(context.GetBundle(), name);
 }
+} // namespace detail
 
-std::shared_ptr<cppmicroservices::logservice::Logger> Logger::getLogger(const std::string& name)
+void Logger::init(cppmicroservices::BundleContext context)
 {
-    return getLogger(s_globalContext, name);
+    std::lock_guard<std::mutex> lock(s_mutex);
+
+    s_context = context;
+    s_logger  = detail::getLogger(context);
 }
 
-// ========== 显式 BundleContext 日志方法 ==========
-// 输出到所有 LogService 实现
-
-void Logger::info(cppmicroservices::BundleContext context, const std::string& message)
+void Logger::reset()
 {
-    auto refs = getLogServiceRefs(context);
-    for (auto& ref : refs) {
-        auto service = context.GetService<cppmicroservices::logservice::LogService>(ref);
-        if (service) {
-            service->Log(cppmicroservices::logservice::SeverityLevel::LOG_INFO, message);
-        }
-    }
+    std::lock_guard<std::mutex> lock(s_mutex);
+    s_logger  = nullptr;
+    s_context = nullptr;
 }
-
-void Logger::warn(cppmicroservices::BundleContext context, const std::string& message)
-{
-    auto refs = getLogServiceRefs(context);
-    for (auto& ref : refs) {
-        auto service = context.GetService<cppmicroservices::logservice::LogService>(ref);
-        if (service) {
-            service->Log(cppmicroservices::logservice::SeverityLevel::LOG_WARNING, message);
-        }
-    }
-}
-
-void Logger::error(cppmicroservices::BundleContext context, const std::string& message)
-{
-    auto refs = getLogServiceRefs(context);
-    for (auto& ref : refs) {
-        auto service = context.GetService<cppmicroservices::logservice::LogService>(ref);
-        if (service) {
-            service->Log(cppmicroservices::logservice::SeverityLevel::LOG_ERROR, message);
-        }
-    }
-}
-
-void Logger::debug(cppmicroservices::BundleContext context, const std::string& message)
-{
-    auto refs = getLogServiceRefs(context);
-    for (auto& ref : refs) {
-        auto service = context.GetService<cppmicroservices::logservice::LogService>(ref);
-        if (service) {
-            service->Log(cppmicroservices::logservice::SeverityLevel::LOG_DEBUG, message);
-        }
-    }
-}
-
-// ========== 全局日志方法（无需传入 context）==========
 
 void Logger::info(const std::string& message)
 {
-    info(s_globalContext, message);
+    if (auto logger = getLogger(); logger)
+        logger->info(message);
 }
 
 void Logger::warn(const std::string& message)
 {
-    warn(s_globalContext, message);
+    if (auto logger = getLogger(); logger)
+        logger->warn(message);
 }
 
 void Logger::error(const std::string& message)
 {
-    error(s_globalContext, message);
+    if (auto logger = getLogger(); logger)
+        logger->error(message);
 }
 
 void Logger::debug(const std::string& message)
 {
-    debug(s_globalContext, message);
+    if (auto logger = getLogger(); logger)
+        logger->debug(message);
+}
+
+std::shared_ptr<cppmicroservices::logservice::Logger> Logger::getLogger()
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (!s_context)
+        return nullptr;
+    if (!s_logger) {
+        s_logger = detail::getLogger(s_context);
+    }
+    return s_logger;
 }
 
 } // namespace common

@@ -16,6 +16,7 @@ int main(int argc, char** argv)
     QApplication::setApplicationName(QStringLiteral("CppMicroServicesHost"));
 
     MainWindow w;
+    w.resize(1024, 768);
     w.show();
     return app.exec();
 }

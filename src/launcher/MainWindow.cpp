@@ -25,13 +25,12 @@ MainWindow::MainWindow(QWidget* parent)
     m_framework.Init();
     m_framework.Start();
 
+    setupUI();
+    setupLogService();
     // 初始化全局 Logger（只需设置一次）
     common::Logger::init(m_framework.GetBundleContext());
 
-    setupUI();
-    setupLogService();
     setupDockWidgets();
-    setupConnections();
     setupServiceListener();
 
     // 使用 Logger 输出启动日志（无需传入 context）
@@ -40,11 +39,6 @@ MainWindow::MainWindow(QWidget* parent)
 
 MainWindow::~MainWindow()
 {
-}
-
-LogServiceImpl* MainWindow::getLogServiceImpl() const
-{
-    return m_logServiceImpl.get();
 }
 
 void MainWindow::setupUI()
@@ -96,12 +90,6 @@ void MainWindow::setupDockWidgets()
     m_taskServiceDock = new TaskServiceDockWidget(&m_framework, this);
     addDockWidget(m_taskServiceDock, KDDockWidgets::Location_OnBottom, m_bundleManagerDock);
     m_taskServiceDock->show();
-}
-
-void MainWindow::setupConnections()
-{
-    // 连接日志信号
-    connect(m_taskServiceDock, &TaskServiceDockWidget::logMessage, this, &MainWindow::onLogMessage);
 }
 
 void MainWindow::setupServiceListener()
@@ -166,14 +154,11 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
     m_framework.GetBundleContext().RemoveListener(std::move(m_ListenerToken));
 
+    common::Logger::reset();
+
     m_framework.Stop();
     m_framework.WaitForStop((std::chrono::milliseconds::max)());
 
     KDDockWidgets::QtWidgets::MainWindow::closeEvent(event);
 }
 
-void MainWindow::onLogMessage(const QString& message)
-{
-    // 转发信号日志到 Logger（无需传入 context）
-    common::Logger::info(message.toStdString());
-}

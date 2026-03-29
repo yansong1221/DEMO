@@ -4,6 +4,7 @@
 #include <cppmicroservices/Bundle.h>
 #include <cppmicroservices/BundleContext.h>
 
+#include "common/Logger.h"
 #include <string>
 
 namespace {
@@ -211,7 +212,9 @@ void TaskServiceTableModel::refresh()
             }
         }
         catch (const std::exception& e) {
-            emit serviceLog(tr("[任务服务] 刷新服务列表失败：%1").arg(QString::fromUtf8(e.what())));
+            common::Logger::error(tr("[任务服务] 刷新服务列表失败：%1")
+                                      .arg(QString::fromUtf8(e.what()))
+                                      .toStdString());
         }
     }
 }
@@ -233,7 +236,8 @@ bool TaskServiceTableModel::attachListener()
         return static_cast<bool>(m_listenerToken);
     }
     catch (const std::exception& e) {
-        emit serviceLog(tr("[任务服务] 注册服务监听失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(
+            tr("[任务服务] 注册服务监听失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
         return false;
     }
 }
@@ -274,7 +278,8 @@ void TaskServiceTableModel::onServiceEvent(cppmicroservices::ServiceEvent const&
         }
     }
     catch (const std::exception& e) {
-        emit serviceLog(tr("[任务服务] 处理服务事件失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(
+            tr("[任务服务] 处理服务事件失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
 }
 
@@ -301,10 +306,9 @@ void TaskServiceTableModel::handleServiceRegistered(
         }
 
         // 添加新条目
-        auto entry               = std::make_unique<TaskServiceEntry>(this);
-        entry->service           = service;
-        entry->defaultConfigYaml = defaultTaskConfigYaml(service);
-        entry->m_ref             = ref;
+        auto entry     = std::make_unique<TaskServiceEntry>(this);
+        entry->service = service;
+        entry->m_ref   = ref;
 
         const int newRow = static_cast<int>(m_entries.size());
 
@@ -317,9 +321,10 @@ void TaskServiceTableModel::handleServiceRegistered(
                 int row = indexOfEntryRow(entry);
                 if (row >= 0 && row < rowCount()) {
                     emit dataChanged(index(row, ColStatus), index(row, ColActions));
-                    emit serviceLog(
+                    common::Logger::info(
                         tr("[任务服务] %1 线程已启动")
-                            .arg(QString::fromStdString(m_entries.back()->service->name())));
+                            .arg(QString::fromStdString(m_entries.back()->service->name()))
+                            .toStdString());
                 }
             },
             Qt::QueuedConnection);
@@ -332,9 +337,10 @@ void TaskServiceTableModel::handleServiceRegistered(
                 int row = indexOfEntryRow(entry);
                 if (row >= 0 && row < rowCount()) {
                     emit dataChanged(index(row, ColStatus), index(row, ColActions));
-                    emit serviceLog(
+                    common::Logger::error(
                         tr("[任务服务] %1 线程已停止")
-                            .arg(QString::fromStdString(m_entries.back()->service->name())));
+                            .arg(QString::fromStdString(m_entries.back()->service->name()))
+                            .toStdString());
                 }
             },
             Qt::QueuedConnection);
@@ -343,11 +349,13 @@ void TaskServiceTableModel::handleServiceRegistered(
         m_entries.push_back(std::move(entry));
         endInsertRows();
 
-        emit serviceLog(tr("[任务服务] 已注册：%1")
-                            .arg(QString::fromStdString(m_entries.back()->service->name())));
+        common::Logger::info(tr("[任务服务] 已注册：%1")
+                                 .arg(QString::fromStdString(m_entries.back()->service->name()))
+                                 .toStdString());
     }
     catch (const std::exception& e) {
-        emit serviceLog(tr("[任务服务] 处理注册事件失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(
+            tr("[任务服务] 处理注册事件失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
 }
 
@@ -371,7 +379,7 @@ void TaskServiceTableModel::handleServiceUnregistering(
     m_entries.erase(m_entries.begin() + index);
     endRemoveRows();
 
-    emit serviceLog(tr("[任务服务] 已注销：%1").arg(name));
+    common::Logger::info(tr("[任务服务] 已注销：%1").arg(name).toStdString());
 }
 
 void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceReferenceBase const& ref)
@@ -394,14 +402,14 @@ void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceRefer
             return;
         }
 
-        TaskServiceEntry& entry = *m_entries[static_cast<size_t>(index)];
+        TaskServiceEntry& entry = *m_entries[index];
         entry.service           = service;
-        entry.defaultConfigYaml = defaultTaskConfigYaml(service);
 
         emit dataChanged(createIndex(index, 0), createIndex(index, ColCount - 1));
     }
     catch (const std::exception& e) {
-        emit serviceLog(tr("[任务服务] 处理修改事件失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(
+            tr("[任务服务] 处理修改事件失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
 }
 
@@ -430,24 +438,6 @@ int TaskServiceTableModel::findEntryIndexByServiceReference(
     }
 
     return -1;
-}
-
-
-QString TaskServiceTableModel::defaultTaskConfigYaml(
-    std::shared_ptr<service::ITaskService> const& service) const
-{
-    if (!service) {
-        return {};
-    }
-
-    auto config = service->createYamlConfig();
-    if (!config) {
-        return {};
-    }
-
-    YAML::Node conf;
-    config->save(conf);
-    return QString::fromStdString(YAML::Dump(conf)).trimmed();
 }
 
 
@@ -481,10 +471,4 @@ bool TaskServiceTableModel::isRunning(int row) const
 {
     const auto* entry = entryAt(row);
     return entry ? entry->isRunning() : false;
-}
-
-QString TaskServiceTableModel::configYaml(int row) const
-{
-    const auto* entry = entryAt(row);
-    return entry ? entry->defaultConfigYaml : QString();
 }

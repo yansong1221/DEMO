@@ -143,6 +143,8 @@ private:
 
 void GreetingActivator::Start(BundleContext context)
 {
+    common::Logger::init(context);
+
     m_service = std::make_shared<GreetingTaskService>();
 
     ServiceProperties props;
@@ -152,7 +154,7 @@ void GreetingActivator::Start(BundleContext context)
     m_reg = context.RegisterService<ITaskService>(m_service, props);
 
     // 使用 Logger 输出日志
-    common::Logger::info(context, "GreetingActivator started and ITaskService registered.");
+    common::Logger::info("GreetingActivator started and ITaskService registered.");
 
     std::cout << "GreetingActivator::Start" << std::endl;
 }
@@ -163,6 +165,8 @@ void GreetingActivator::Stop(BundleContext)
     m_service.reset();
 
     std::cout << "GreetingActivator::Stop" << std::endl;
+
+    common::Logger::reset();
 }
 
 } // namespace demo

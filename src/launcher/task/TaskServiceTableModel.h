@@ -27,7 +27,6 @@ class TaskServiceEntry : public QObject, public Thread
     Q_OBJECT
 
 public:
-    QString defaultConfigYaml;
 
     cppmicroservices::ServiceReference<service::ITaskService> m_ref;
     std::shared_ptr<service::ITaskService> service;
@@ -96,10 +95,6 @@ public:
     int indexOfEntryRow(const TaskServiceEntry* entry) const;
 
     bool isRunning(int row) const;
-    QString configYaml(int row) const;
-
-signals:
-    void serviceLog(QString const& message);
 
 private:
     void onServiceEvent(cppmicroservices::ServiceEvent const& evt);

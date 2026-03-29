@@ -31,7 +31,6 @@ public:
     void configureTaskService(int row);
 
 signals:
-    void logMessage(const QString& message);
     void taskServiceStarted(int row);
     void taskServiceStopped(int row);
     void taskServiceConfigured(int row);
@@ -40,7 +39,6 @@ private slots:
     void onRefreshTaskServices();
     void onTaskServiceStartStopRequested(int row);
     void onTaskServiceConfigRequested(int row);
-    void onTaskServiceLog(const QString& message);
 
 private:
     void setupUI();

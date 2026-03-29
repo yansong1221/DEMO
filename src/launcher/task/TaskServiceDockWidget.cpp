@@ -12,6 +12,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
+#include "common/Logger.h"
 #include <cppmicroservices/Framework.h>
 
 TaskServiceDockWidget::TaskServiceDockWidget(cppmicroservices::Framework* framework,
@@ -25,7 +26,7 @@ TaskServiceDockWidget::TaskServiceDockWidget(cppmicroservices::Framework* framew
 
     // 启动监听器
     if (!m_taskServiceModel->attachListener()) {
-        emit logMessage(tr("[监听] 在模型中注册任务服务监听器失败。"));
+        common::Logger::error(tr("[监听] 在模型中注册任务服务监听器失败。").toStdString());
     }
 
     m_taskServiceModel->refresh();
@@ -63,10 +64,6 @@ void TaskServiceDockWidget::setupUI()
     m_taskServiceView->horizontalHeader()->setStretchLastSection(true);
 
     m_taskServiceModel = new TaskServiceTableModel(this);
-    connect(m_taskServiceModel,
-            &TaskServiceTableModel::serviceLog,
-            this,
-            &TaskServiceDockWidget::onTaskServiceLog);
     m_taskServiceModel->setFramework(m_framework);
 
     m_taskServiceView->setModel(m_taskServiceModel);
@@ -106,8 +103,9 @@ void TaskServiceDockWidget::setupConnections()
 void TaskServiceDockWidget::refreshTaskServices()
 {
     m_taskServiceModel->refresh();
-    emit logMessage(
-        tr("[任务服务] 已刷新，共发现 %1 个服务。").arg(m_taskServiceModel->rowCount()));
+    common::Logger::info(tr("[任务服务] 已刷新，共发现 %1 个服务。")
+                             .arg(m_taskServiceModel->rowCount())
+                             .toStdString());
 }
 
 void TaskServiceDockWidget::startTaskService(int row)
@@ -130,12 +128,14 @@ void TaskServiceDockWidget::startTaskService(int row)
     // 使用线程启动服务
     bool started = entry->startService(config);
     if (started) {
-        emit logMessage(tr("[任务服务] %1 启动成功（线程已启动）。")
-                            .arg(QString::fromStdString(entry->service->name())));
+        common::Logger::info(tr("[任务服务] %1 启动成功（线程已启动）。")
+                                 .arg(QString::fromStdString(entry->service->name()))
+                                 .toStdString());
     }
     else {
-        emit logMessage(
-            tr("[任务服务] %1 启动失败。").arg(QString::fromStdString(entry->service->name())));
+        common::Logger::warn(tr("[任务服务] %1 启动失败。")
+                                 .arg(QString::fromStdString(entry->service->name()))
+                                 .toStdString());
     }
 
     // 触发数据更新以刷新按钮状态
@@ -160,12 +160,14 @@ void TaskServiceDockWidget::stopTaskService(int row)
     // 使用线程停止服务
     bool stopped = entry->stopService(5000); // 5秒超时
     if (stopped) {
-        emit logMessage(tr("[任务服务] %1 已停止（线程已结束）。")
-                            .arg(QString::fromStdString(entry->service->name())));
+        common::Logger::info(tr("[任务服务] %1 已停止（线程已结束）。")
+                                 .arg(QString::fromStdString(entry->service->name()))
+                                 .toStdString());
     }
     else {
-        emit logMessage(
-            tr("[任务服务] %1 停止超时。").arg(QString::fromStdString(entry->service->name())));
+        common::Logger::error(tr("[任务服务] %1 停止超时。")
+                                  .arg(QString::fromStdString(entry->service->name()))
+                                  .toStdString());
     }
 
     // 触发数据更新以刷新按钮状态
@@ -190,20 +192,9 @@ void TaskServiceDockWidget::configureTaskService(int row)
         return;
     }
 
-    bool ok;
-    QString configText = QInputDialog::getMultiLineText(
-        this,
-        tr("编辑配置 - %1").arg(QString::fromStdString(entry->service->name())),
-        tr("YAML 配置:"),
-        entry->defaultConfigYaml,
-        &ok);
-
-    if (!ok) {
-        return;
-    }
-
-    emit logMessage(
-        tr("[任务服务] 已更新配置：%1").arg(QString::fromStdString(entry->service->name())));
+    common::Logger::info(tr("[任务服务] 已更新配置：%1")
+                             .arg(QString::fromStdString(entry->service->name()))
+                             .toStdString());
     emit taskServiceConfigured(row);
 }
 
@@ -272,9 +263,4 @@ void TaskServiceDockWidget::onTaskServiceStartStopRequested(int row)
 void TaskServiceDockWidget::onTaskServiceConfigRequested(int row)
 {
     configureTaskService(row);
-}
-
-void TaskServiceDockWidget::onTaskServiceLog(const QString& message)
-{
-    emit logMessage(message);
 }

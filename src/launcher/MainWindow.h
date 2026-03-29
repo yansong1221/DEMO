@@ -27,19 +27,12 @@ public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
 
-    // 获取 LogServiceImpl 实例（供其他组件使用）
-    LogServiceImpl* getLogServiceImpl() const;
-
 protected:
     void closeEvent(QCloseEvent* event) override;
-
-private slots:
-    void onLogMessage(const QString& message);
 
 private:
     void setupUI();
     void setupDockWidgets();
-    void setupConnections();
     void setupServiceListener();
     void setupLogService();
 

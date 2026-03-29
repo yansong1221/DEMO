@@ -116,5 +116,4 @@ private:
 
     mutable std::mutex m_mutex;
     LogWidget* m_logWidget = nullptr;
-    std::vector<std::weak_ptr<LoggerImpl>> m_loggers;
 };
