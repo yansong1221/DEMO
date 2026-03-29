@@ -16,6 +16,3 @@ target_include_directories(common PUBLIC
 target_link_libraries(common PUBLIC 
     CppMicroServices
 )
-
-# 设置 VS 文件夹归类
-set_target_properties(common PROPERTIES FOLDER "common")

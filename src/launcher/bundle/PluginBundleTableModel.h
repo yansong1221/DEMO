@@ -71,9 +71,6 @@ public:
     void startBundleRow(int row);
     void stopBundleRow(int row);
 
-signals:
-    void bundleLog(QString const& message);
-
 private:
     QString bundleStateLabel(cppmicroservices::Bundle::State state) const;
     HostRowState resolveHostRowState(QString const& absPath, std::string const& sym) const;

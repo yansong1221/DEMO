@@ -5,39 +5,57 @@
 #include <cppmicroservices/logservice/LogService.hpp>
 #include <cppmicroservices/logservice/Logger.hpp>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <vector>
 
 namespace common {
 
 // 日志门面类 - 简化 cppmicroservices::logservice::Logger 的使用
+// 支持两种方式：
+// 1. 全局模式：先调用 init() 设置 BundleContext，之后可直接使用 info/warn/error/debug/trace
+// 2. 显式模式：每次调用时传入 BundleContext 或 Framework
 class Logger
 {
 public:
-    // 从 BundleContext 获取 Logger（推荐 bundles 使用）
+    // ========== 全局初始化 ==========
+    // 初始化全局 BundleContext（通常在 launcher 启动时调用一次）
+    static void init(cppmicroservices::BundleContext context);
+    // 重置全局 BundleContext
+    static void reset();
+    // 检查是否已初始化
+    static bool isInitialized();
+
+    // ========== 从 BundleContext/Framework 获取 Logger ==========
     static std::shared_ptr<cppmicroservices::logservice::Logger>
     getLogger(cppmicroservices::BundleContext context, const std::string& name = {});
 
-    // 从 Framework 获取 Logger（推荐 launcher 使用）
+    // 从全局 BundleContext 获取 Logger（需先调用 init）
     static std::shared_ptr<cppmicroservices::logservice::Logger>
-    getLogger(cppmicroservices::Framework& framework, const std::string& name = {});
+    getLogger(const std::string& name = {});
 
-    // 便捷日志方法 - 通过 BundleContext 直接输出日志
+    // ========== 便捷日志方法 - 显式传入 BundleContext ==========
     static void info(cppmicroservices::BundleContext context, const std::string& message);
     static void warn(cppmicroservices::BundleContext context, const std::string& message);
     static void error(cppmicroservices::BundleContext context, const std::string& message);
     static void debug(cppmicroservices::BundleContext context, const std::string& message);
-    static void trace(cppmicroservices::BundleContext context, const std::string& message);
 
-    // 便捷日志方法 - 通过 Framework 直接输出日志（launcher 使用）
-    static void info(cppmicroservices::Framework& framework, const std::string& message);
-    static void warn(cppmicroservices::Framework& framework, const std::string& message);
-    static void error(cppmicroservices::Framework& framework, const std::string& message);
-    static void debug(cppmicroservices::Framework& framework, const std::string& message);
-    static void trace(cppmicroservices::Framework& framework, const std::string& message);
+    // ========== 便捷日志方法 - 使用全局 BundleContext（需先调用 init）==========
+    static void info(const std::string& message);
+    static void warn(const std::string& message);
+    static void error(const std::string& message);
+    static void debug(const std::string& message);
 
 private:
+    // 获取所有 LogService 服务引用
+    static std::vector<cppmicroservices::ServiceReference<cppmicroservices::logservice::LogService>>
+    getLogServiceRefs(cppmicroservices::BundleContext context);
+
     static std::shared_ptr<cppmicroservices::logservice::LoggerFactory>
     getLoggerFactory(cppmicroservices::BundleContext context);
+
+    // 全局 BundleContext（使用 weak_ptr 避免影响框架生命周期）
+    static cppmicroservices::BundleContext s_globalContext;
 };
 
 } // namespace common

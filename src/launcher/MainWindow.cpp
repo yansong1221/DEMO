@@ -1,8 +1,8 @@
 #include "MainWindow.h"
 #include "bundle/BundleManagerDockWidget.h"
-#include "task/TaskServiceDockWidget.h"
-#include "log/LogWidget.h"
 #include "log/LogServiceImpl.h"
+#include "log/LogWidget.h"
+#include "task/TaskServiceDockWidget.h"
 
 #include <common/Logger.h>
 
@@ -25,14 +25,17 @@ MainWindow::MainWindow(QWidget* parent)
     m_framework.Init();
     m_framework.Start();
 
+    // 初始化全局 Logger（只需设置一次）
+    common::Logger::init(m_framework.GetBundleContext());
+
     setupUI();
     setupLogService();
     setupDockWidgets();
     setupConnections();
     setupServiceListener();
 
-    // 使用 Logger 输出启动日志（非信号方式）
-    common::Logger::info(m_framework, "框架已启动，支持 Bundle 管理和 ITaskService 服务发现。");
+    // 使用 Logger 输出启动日志（无需传入 context）
+    common::Logger::info("框架已启动，支持 Bundle 管理和 ITaskService 服务发现。");
 }
 
 MainWindow::~MainWindow()
@@ -48,7 +51,7 @@ void MainWindow::setupUI()
 {
     // 创建 LogWidget 作为中心控件
     m_logWidget = new LogWidget(this);
-    
+
     setPersistentCentralWidget(m_logWidget);
 }
 
@@ -56,22 +59,22 @@ void MainWindow::setupLogService()
 {
     // 创建 LogService 实现
     m_logServiceImpl = std::make_shared<LogServiceImpl>();
-    
+
     // 设置日志显示控件
     m_logServiceImpl->setLogWidget(m_logWidget);
-    
+
     // 注册 LogService 到框架
     cppmicroservices::ServiceProperties props;
     props["service.description"] = std::string("Qt-based LogService Implementation");
-    props["service.vendor"] = std::string("CppMicroServices Demo");
-    
+    props["service.vendor"]      = std::string("CppMicroServices Demo");
+
     m_framework.GetBundleContext().RegisterService<cppmicroservices::logservice::LogService>(
         m_logServiceImpl, props);
     m_framework.GetBundleContext().RegisterService<cppmicroservices::logservice::LoggerFactory>(
         m_logServiceImpl, props);
-    
+
     // 记录启动日志
-    m_logServiceImpl->Log(cppmicroservices::logservice::SeverityLevel::LOG_INFO, 
+    m_logServiceImpl->Log(cppmicroservices::logservice::SeverityLevel::LOG_INFO,
                           "LogService registered successfully");
 }
 
@@ -81,7 +84,7 @@ void MainWindow::setupDockWidgets()
     m_bundleManagerDock = new BundleManagerDockWidget(&m_framework, this);
     addDockWidget(m_bundleManagerDock, KDDockWidgets::Location_OnLeft);
     m_bundleManagerDock->show();
-    
+
     // 首次启动自动加载所有 bundles
     m_bundleManagerDock->refreshBundleList();
     int count = m_bundleManagerDock->bundleCount();
@@ -98,8 +101,6 @@ void MainWindow::setupDockWidgets()
 void MainWindow::setupConnections()
 {
     // 连接日志信号
-    connect(
-        m_bundleManagerDock, &BundleManagerDockWidget::logMessage, this, &MainWindow::onLogMessage);
     connect(m_taskServiceDock, &TaskServiceDockWidget::logMessage, this, &MainWindow::onLogMessage);
 }
 
@@ -173,6 +174,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::onLogMessage(const QString& message)
 {
-    // 转发信号日志到 Logger
-    common::Logger::info(m_framework, message.toStdString());
+    // 转发信号日志到 Logger（无需传入 context）
+    common::Logger::info(message.toStdString());
 }

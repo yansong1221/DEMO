@@ -31,7 +31,6 @@ public:
     int bundleCount() const;
 
 signals:
-    void logMessage(const QString& message);
     void bundleLoaded(int row);
     void bundleUnloaded(int row);
 

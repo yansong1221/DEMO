@@ -13,6 +13,7 @@
 #include <cppmicroservices/FrameworkEvent.h>
 #include <cppmicroservices/FrameworkFactory.h>
 
+#include "common/Logger.h"
 #include <algorithm>
 #include <chrono>
 #include <string>
@@ -296,8 +297,9 @@ void PluginBundleTableModel::startAllBundlesInHost()
         }
     }
     catch (const std::exception& e) {
-        emit bundleLog(
-            QString::fromUtf8("[错误] 启动 Bundle：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(QString::fromUtf8("[错误] 启动 Bundle：%1")
+                                  .arg(QString::fromUtf8(e.what()))
+                                  .toStdString());
     }
 }
 
@@ -325,7 +327,7 @@ void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
 {
     const QString trimmed = root.trimmed();
     if (trimmed.isEmpty() || !QDir(trimmed).exists()) {
-        emit bundleLog(tr("[列表] 插件目录无效。"));
+        common::Logger::error(tr("[列表] 插件目录无效。").toStdString());
         return;
     }
 
@@ -339,7 +341,7 @@ void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
         dir.entryInfoList(filters, QDir::Files | QDir::Readable, QDir::Name);
     if (files.isEmpty()) {
         setRows({});
-        emit bundleLog(tr("[列表] 目录中未找到插件文件。"));
+        common::Logger::error(tr("[列表] 目录中未找到插件文件。").toStdString());
         return;
     }
 
@@ -347,7 +349,7 @@ void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
     const QString storagePath =
         QDir::temp().absoluteFilePath(QStringLiteral("cs_host_probe/") + probeId);
     if (!QDir().mkpath(storagePath)) {
-        emit bundleLog(tr("[列表] 无法创建临时目录。"));
+        common::Logger::error(tr("[列表] 无法创建临时目录。").toStdString());
         return;
     }
 
@@ -385,8 +387,9 @@ void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
                 }
             }
             catch (const std::exception& e) {
-                emit bundleLog(QString::fromUtf8("[列表] 跳过 %1 — %2")
-                                   .arg(absPath, QString::fromUtf8(e.what())));
+                common::Logger::error(QString::fromUtf8("[列表] 跳过 %1 — %2")
+                                          .arg(absPath, QString::fromUtf8(e.what()))
+                                          .toStdString());
             }
         }
 
@@ -394,20 +397,23 @@ void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
         probeFw.WaitForStop(std::chrono::milliseconds::max());
     }
     catch (const std::exception& e) {
-        emit bundleLog(QString::fromUtf8("[列表] 扫描失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(QString::fromUtf8("[列表] 扫描失败：%1")
+                                  .arg(QString::fromUtf8(e.what()))
+                                  .toStdString());
     }
 
     QDir(storagePath).removeRecursively();
 
     setRows(std::move(built));
     refreshAllHostStates();
-    emit bundleLog(tr("[列表] 共 %1 条 bundle 记录（来自目录扫描）。").arg(rowCount()));
+    common::Logger::info(
+        tr("[列表] 共 %1 条 bundle 记录（来自目录扫描）。").arg(rowCount()).toStdString());
 }
 
 void PluginBundleTableModel::installBundlesFromFiles(QStringList const& absolutePaths)
 {
     if (!m_hostFramework) {
-        emit bundleLog(tr("[加载] 框架未就绪。"));
+        common::Logger::error(tr("[加载] 框架未就绪。").toStdString());
         return;
     }
     auto ctx = m_hostFramework->GetBundleContext();
@@ -415,26 +421,30 @@ void PluginBundleTableModel::installBundlesFromFiles(QStringList const& absolute
         try {
             const std::string loc = pathForInstall(f);
             auto installed        = ctx.InstallBundles(loc);
-            emit bundleLog(
-                tr("已安装：%1（%2 个 bundle）").arg(f).arg(static_cast<int>(installed.size())));
+            common::Logger::info(tr("已安装：%1（%2 个 bundle）")
+                                     .arg(f)
+                                     .arg(static_cast<int>(installed.size()))
+                                     .toStdString());
         }
         catch (const std::exception& e) {
-            emit bundleLog(QString::fromUtf8("[失败] %1 — %2").arg(f, QString::fromUtf8(e.what())));
+            common::Logger::error(QString::fromUtf8("[失败] %1 — %2")
+                                      .arg(f, QString::fromUtf8(e.what()))
+                                      .toStdString());
         }
     }
     startAllBundlesInHost();
     refreshAllHostStates();
-    emit bundleLog(tr("已尝试按依赖顺序启动全部 bundle。"));
+    common::Logger::info(tr("已尝试按依赖顺序启动全部 bundle。").toStdString());
 }
 
 void PluginBundleTableModel::startBundleRow(int row)
 {
     if (!m_hostFramework) {
-        emit bundleLog(tr("[启动] 框架未就绪。"));
+        common::Logger::error(tr("[启动] 框架未就绪。").toStdString());
         return;
     }
     if (row < 0 || row >= rowCount()) {
-        emit bundleLog(tr("[启动] 无效行。"));
+        common::Logger::error(tr("[启动] 无效行。").toStdString());
         return;
     }
     const QString absPath    = absPathAtRow(row);
@@ -442,7 +452,7 @@ void PluginBundleTableModel::startBundleRow(int row)
     const QByteArray symUtf8 = symQ.toUtf8();
     const std::string sym(symUtf8.constData(), static_cast<size_t>(symUtf8.size()));
     if (sym.empty()) {
-        emit bundleLog(tr("[启动] 缺少 symbolic name，请先刷新列表。"));
+        common::Logger::error(tr("[启动] 缺少 symbolic name，请先刷新列表。").toStdString());
         return;
     }
     try {
@@ -450,7 +460,8 @@ void PluginBundleTableModel::startBundleRow(int row)
         ctx.InstallBundles(pathForInstall(absPath));
         Bundle b = findHostBundle(m_hostFramework, absPath, sym);
         if (!b) {
-            emit bundleLog(tr("[启动] 已安装但仍未匹配到 Bundle（检查路径与 symbolic name）。"));
+            common::Logger::error(
+                tr("[启动] 已安装但仍未匹配到 Bundle（检查路径与 symbolic name）。").toStdString());
             refreshAllHostStates();
             return;
         }
@@ -458,10 +469,12 @@ void PluginBundleTableModel::startBundleRow(int row)
             ensureServiceTimeStartedIfPresent();
         }
         b.Start();
-        emit bundleLog(tr("[启动] 已请求启动：%1").arg(QString::fromUtf8(sym.c_str())));
+        common::Logger::info(
+            tr("[启动] 已请求启动：%1").arg(QString::fromUtf8(sym.c_str())).toStdString());
     }
     catch (const std::exception& e) {
-        emit bundleLog(QString::fromUtf8("[启动] 失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(
+            QString::fromUtf8("[启动] 失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
     refreshAllHostStates();
 }
@@ -469,33 +482,36 @@ void PluginBundleTableModel::startBundleRow(int row)
 void PluginBundleTableModel::stopBundleRow(int row)
 {
     if (!m_hostFramework) {
-        emit bundleLog(tr("[停止] 框架未就绪。"));
+        common::Logger::error(tr("[启动] 框架未就绪。").toStdString());
         return;
     }
     if (row < 0 || row >= rowCount()) {
-        emit bundleLog(tr("[停止] 无效行。"));
+        common::Logger::error(tr("[启动] 无效行。").toStdString());
         return;
     }
+
     const QString absPath    = absPathAtRow(row);
     const QString symQ       = symbolicNameAtRow(row);
     const QByteArray symUtf8 = symQ.toUtf8();
     const std::string sym(symUtf8.constData(), static_cast<size_t>(symUtf8.size()));
     if (sym.empty()) {
-        emit bundleLog(tr("[停止] 缺少 symbolic name，请先刷新列表。"));
+        common::Logger::error(tr("[启动] 缺少 symbolic name，请先刷新列表。").toStdString());
         return;
     }
     try {
         Bundle b = findHostBundle(m_hostFramework, absPath, sym);
         if (!b) {
-            emit bundleLog(tr("[停止] 主框架中未安装该 Bundle。"));
+            common::Logger::error(tr("[停止] 主框架中未安装该 Bundle。").toStdString());
             return;
         }
         b.Stop();
         b.Uninstall();
-        emit bundleLog(tr("[停止] 已请求停止：%1").arg(QString::fromUtf8(sym.c_str())));
+        common::Logger::info(
+            tr("[停止] 已请求停止：%1").arg(QString::fromUtf8(sym.c_str())).toStdString());
     }
     catch (const std::exception& e) {
-        emit bundleLog(QString::fromUtf8("[停止] 失败：%1").arg(QString::fromUtf8(e.what())));
+        common::Logger::error(
+            QString::fromUtf8("[停止] 失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
     refreshAllHostStates();
 }

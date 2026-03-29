@@ -13,6 +13,7 @@
 #include <QTableView>
 #include <QVBoxLayout>
 
+#include "common/Logger.h"
 #include <cppmicroservices/Framework.h>
 
 namespace {
@@ -42,7 +43,7 @@ BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::Framework* fr
 
     // 启动监听器
     if (!m_bundleModel->attachBundleListener()) {
-        emit logMessage(tr("[监听] 在模型中注册 Bundle 监听器失败。"));
+        common::Logger::info(tr("[监听] 在模型中注册 Bundle 监听器失败。").toStdString());
     }
 }
 
@@ -78,10 +79,6 @@ void BundleManagerDockWidget::setupUI()
     m_bundleView->verticalHeader()->setDefaultSectionSize(30);
 
     m_bundleModel = new PluginBundleTableModel(this);
-    connect(m_bundleModel,
-            &PluginBundleTableModel::bundleLog,
-            this,
-            &BundleManagerDockWidget::logMessage);
     m_bundleModel->setHostFramework(m_framework);
 
     m_bundleView->setModel(m_bundleModel);
@@ -169,7 +166,7 @@ void BundleManagerDockWidget::onUnloadBundleRow(int row)
         QMessageBox::No);
 
     if (answer != QMessageBox::Yes) {
-        emit logMessage(tr("[卸载] 已取消：%1").arg(bundleName));
+        common::Logger::info(tr("[卸载] 已取消：%1").arg(bundleName).toStdString());
         return;
     }
 

@@ -57,10 +57,6 @@ protected:
     void onThreadEnd() override;
 
 private:
-    // 日志相关
-    std::shared_ptr<spdlog::logger> m_logger;
-
-    void setupLogger(const std::string& pluginName);
 };
 
 class TaskServiceTableModel : public QAbstractTableModel

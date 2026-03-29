@@ -2,7 +2,6 @@
 #include "LogWidget.h"
 
 #include <QMetaObject>
-#include <QDebug>
 
 // LoggerImpl implementation
 
