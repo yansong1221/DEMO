@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(CppMicroServicesDemo LANGUAGES CXX)
 
+# 添加 cmake 模块路径
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # 检测是否为顶层项目
 get_directory_property(_HAS_PARENT PARENT_DIRECTORY)
 if(_HAS_PARENT)
@@ -34,41 +37,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # 1. 查找包
 find_package(CppMicroServices REQUIRED CONFIG)
 
-if(NOT TARGET imgui)
+# 2. 获取第三方库
+include(FetchImGui)
 
-    find_package(Freetype REQUIRED)
 
-    # Fetch dependencies (modern CMake approach)
-    include(FetchContent)
-
-    # Dear ImGui
-    FetchContent_Declare(
-        imgui
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        GIT_TAG v1.92.6-docking
-    )
-    FetchContent_MakeAvailable(imgui)
-
-    # Configure ImGui with GLFW + OpenGL3 backend
-    set(IMGUI_DIR ${imgui_SOURCE_DIR})
-    file(GLOB IMGUI_SOURCES
-        "${IMGUI_DIR}/*.cpp"
-        "${IMGUI_DIR}/misc/freetype/*.cpp"
-        "${IMGUI_DIR}/misc/cpp/*.cpp"
-    )
-
-    add_library(imgui STATIC ${IMGUI_SOURCES})
-
-    target_include_directories(imgui PUBLIC
-        ${IMGUI_DIR}
-        ${IMGUI_DIR}/misc/freetype
-        ${IMGUI_DIR}/misc/cpp
-    )
-    target_link_libraries(imgui PUBLIC Freetype::Freetype)
-endif()
-
-add_subdirectory(service_interface)
-add_subdirectory(greeting_provider)
-add_subdirectory(greeting_consumer)
-add_subdirectory(ui_consumer)
-add_subdirectory(host)
+add_subdirectory(src/service_interface)
+add_subdirectory(src/greeting_provider)
+add_subdirectory(src/greeting_consumer)
+add_subdirectory(src/ui_consumer)
+add_subdirectory(src/host)

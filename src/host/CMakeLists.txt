@@ -4,15 +4,7 @@ SET(MODULE host_app)
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
-FetchContent_Declare(
-    KDDockWidgets
-    GIT_REPOSITORY https://github.com/KDAB/KDDockWidgets.git
-    GIT_TAG v2.4.0
-)
-FetchContent_MakeAvailable(KDDockWidgets)
-
-# 强制设置KDDockWidgets目标的C++标准
-set_target_properties(kddockwidgets PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQUIRED ON)
+include(FetchKDDockWidgets)
 
 set(CMAKE_AUTOMOC ON)
 
