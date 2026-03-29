@@ -1,25 +1,22 @@
 #pragma once
 
-#include "PluginBundleTableModel.h"
-#include "TaskServiceTableModel.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
-#include <QMainWindow>
 #include <cppmicroservices/Framework.h>
+#include <cppmicroservices/FrameworkEvent.h>
+#include <cppmicroservices/ServiceReference.h>
+#include <cppmicroservices/ListenerToken.h>
+#include <QTextEdit>
 #include <memory>
 
 #include "demo/IGreetingService.h"
 #include "demo/IWidgetService.h"
 
-QT_BEGIN_NAMESPACE
-namespace Ui {
-class MainWindow;
-}
-QT_END_NAMESPACE
+class BundleManagerDockWidget;
+class TaskServiceDockWidget;
 
-class PluginBundleActionDelegate;
-class TaskServiceActionDelegate;
-
-class MainWindow : public QMainWindow
+class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
 {
     Q_OBJECT
 
@@ -31,41 +28,30 @@ protected:
     void closeEvent(QCloseEvent* event) override;
 
 private slots:
-    void onBrowsePluginFolder();
-    void onRefreshBundleList();
-    void onLoadBundleRow(int row);
-    void onUnloadBundleRow(int row);
-    void onBundleTableSelectionChanged();
-    void onRefreshTaskServices();
-    void onTaskServiceSelectionChanged();
-    void onTaskServiceStartStopRequested(int row);
-    void onTaskServiceConfigRequested(int row);
-    void onTaskServiceLog(QString const& message);
+    void onLogMessage(const QString& message);
 
 private:
-    void setupModels();
-    void setupViews();
+    void setupUI();
+    void setupDockWidgets();
     void setupConnections();
+    void setupServiceListener();
     void appendLog(const QString& line);
-    int currentTaskServiceRow() const;
-    std::shared_ptr<demo::ITaskService::IBasicConfig> buildTaskServiceConfig(int row,
-                                                                             bool* ok) const;
-    void startTaskService(int row);
-    void stopTaskService(int row);
 
-    Ui::MainWindow* ui;
     cppmicroservices::Framework m_framework;
-    PluginBundleTableModel* m_bundleModel                  = nullptr;
-    TaskServiceTableModel* m_taskServiceModel              = nullptr;
-    PluginBundleActionDelegate* m_actionDelegate           = nullptr;
-    TaskServiceActionDelegate* m_taskServiceActionDelegate = nullptr;
+    
+    // Dock widgets
+    BundleManagerDockWidget* m_bundleManagerDock = nullptr;
+    TaskServiceDockWidget* m_taskServiceDock = nullptr;
+    
+    // Log widget (persistent central widget)
+    QTextEdit* m_logEdit = nullptr;
 
     struct PluginState
     {
         cppmicroservices::ServiceReference<demo::IWidgetService> ref;
         std::shared_ptr<demo::IWidgetService> service;
-        QDockWidget* dock_w = nullptr;
+        KDDockWidgets::QtWidgets::DockWidget* dock_w = nullptr;
     };
     std::vector<PluginState> m_Plugins;
-   cppmicroservices::ListenerToken  m_ListenerToken;
+    cppmicroservices::ListenerToken m_ListenerToken;
 };

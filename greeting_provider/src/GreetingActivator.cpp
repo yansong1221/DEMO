@@ -7,6 +7,7 @@
 #include <iostream>
 #include <thread>
 
+#include "imgui.h"
 #include <spdlog/spdlog.h>
 
 using namespace cppmicroservices;
@@ -16,7 +17,14 @@ namespace demo {
 class DemoTaskConfig : public ITaskService::IBasicConfig
 {
 public:
-    void draw() override { }
+    void draw(ImGuiContext* ctx) override
+    {
+        ImGui::SetCurrentContext(ctx);
+        ImGui::BulletText("显示中文");
+        ImGui::BulletText("heelo");
+        ImGui::Button("123456");
+        ImGui::ShowDemoWindow();
+    }
 
     void save(YAML::Node& conf) const override
     {

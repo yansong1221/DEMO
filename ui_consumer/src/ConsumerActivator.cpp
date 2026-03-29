@@ -11,10 +11,21 @@ using namespace cppmicroservices;
 class UiImpl : public demo::IWidgetPlus
 {
 public:
-    QWidget* createWidget(QWidget* parent) override { return new QLabel("Hello from the widget service!",parent); }
-    void destroyWidget(QWidget* widget) override { delete static_cast<QLabel*>(widget); }
+    UiImpl() { w_ = new QLabel("Hello from the widget service!"); }
+    ~UiImpl()
+    {
+        std::cout << "UiImpl destructor" << std::endl;
+        delete w_;
+    }
+    QWidget* widget() override { return w_; }
+    // void destroyWidget(QWidget* widget) override { delete static_cast<QLabel*>(widget); }
 
     void hello() override { throw std::logic_error("The method or operation is not implemented."); }
+
+    QString uniqueName() const override { return "demo.widget"; }
+
+protected:
+    QLabel* w_;
 };
 
 namespace demo {

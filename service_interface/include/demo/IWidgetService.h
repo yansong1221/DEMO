@@ -1,12 +1,13 @@
 #pragma once
+#include <QString>
 
 class QWidget;
 namespace demo {
 class IWidgetService
 {
 public:
-    virtual QWidget* createWidget(QWidget* parent) = 0;
-    virtual void destroyWidget(QWidget* widget)    = 0;
+    virtual QWidget* widget()  = 0;
+    virtual QString uniqueName() const = 0;
 };
 class IWidgetPlus : public IWidgetService
 {

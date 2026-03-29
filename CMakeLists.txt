@@ -27,11 +27,46 @@ if(IS_ROOT_PROJECT)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 endif()
 
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # 1. 查找包
 find_package(CppMicroServices REQUIRED CONFIG)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(NOT TARGET imgui)
+
+    find_package(Freetype REQUIRED)
+
+    # Fetch dependencies (modern CMake approach)
+    include(FetchContent)
+
+    # Dear ImGui
+    FetchContent_Declare(
+        imgui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        GIT_TAG v1.92.6-docking
+    )
+    FetchContent_MakeAvailable(imgui)
+
+    # Configure ImGui with GLFW + OpenGL3 backend
+    set(IMGUI_DIR ${imgui_SOURCE_DIR})
+    file(GLOB IMGUI_SOURCES
+        "${IMGUI_DIR}/*.cpp"
+        "${IMGUI_DIR}/misc/freetype/*.cpp"
+        "${IMGUI_DIR}/misc/cpp/*.cpp"
+    )
+
+    add_library(imgui STATIC ${IMGUI_SOURCES})
+
+    target_include_directories(imgui PUBLIC
+        ${IMGUI_DIR}
+        ${IMGUI_DIR}/misc/freetype
+        ${IMGUI_DIR}/misc/cpp
+    )
+    target_link_libraries(imgui PUBLIC Freetype::Freetype)
+endif()
+
 add_subdirectory(service_interface)
 add_subdirectory(greeting_provider)
 add_subdirectory(greeting_consumer)

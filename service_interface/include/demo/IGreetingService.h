@@ -5,6 +5,8 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
+struct ImGuiContext;
+
 namespace spdlog {
 class logger;
 }
@@ -16,7 +18,7 @@ public:
     struct IBasicConfig
     {
         virtual ~IBasicConfig()                   = default;
-        virtual void draw()                       = 0;
+        virtual void draw(ImGuiContext* ctx)      = 0;
         virtual void save(YAML::Node& conf) const = 0;
         virtual void restore(YAML::Node conf)     = 0;
         virtual std::optional<std::string> displayName() const { return std::nullopt; }

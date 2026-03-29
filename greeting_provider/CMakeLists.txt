@@ -12,7 +12,7 @@ set(_srcs src/GreetingActivator.cpp)
   set_property(TARGET ${MODULE} APPEND PROPERTY COMPILE_DEFINITIONS US_BUNDLE_NAME=greeting_provider)
   set_property(TARGET ${MODULE} PROPERTY DEBUG_POSTFIX "")
 
-  target_link_libraries(${MODULE} ${CppMicroServices_LIBRARIES} service_interface)
+  target_link_libraries(${MODULE} ${CppMicroServices_LIBRARIES} service_interface imgui)
   target_include_directories(${MODULE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
   set_target_properties(${MODULE} PROPERTIES
     LABELS ${MODULE}

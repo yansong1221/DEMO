@@ -1,0 +1,64 @@
+#pragma once
+
+#include "TaskServiceTableModel.h"
+#include <kddockwidgets/qtwidgets/views/DockWidget.h>
+#include <memory>
+
+QT_BEGIN_NAMESPACE
+class QPushButton;
+class QTableView;
+class QTextEdit;
+QT_END_NAMESPACE
+
+class TaskServiceActionDelegate;
+
+namespace cppmicroservices {
+class Framework;
+}
+
+class TaskServiceDockWidget : public KDDockWidgets::QtWidgets::DockWidget
+{
+    Q_OBJECT
+
+public:
+    explicit TaskServiceDockWidget(cppmicroservices::Framework* framework,
+                                    QWidget* parent = nullptr);
+    ~TaskServiceDockWidget() override;
+
+    void refreshTaskServices();
+    void startTaskService(int row);
+    void stopTaskService(int row);
+    void configureTaskService(int row);
+
+    void setLogTarget(QTextEdit* logEdit);
+
+signals:
+    void logMessage(const QString& message);
+    void taskServiceStarted(int row);
+    void taskServiceStopped(int row);
+    void taskServiceConfigured(int row);
+
+private slots:
+    void onRefreshTaskServices();
+    void onTaskServiceStartStopRequested(int row);
+    void onTaskServiceConfigRequested(int row);
+    void onTaskServiceLog(const QString& message);
+
+private:
+    void setupUI();
+    void setupConnections();
+    int currentTaskServiceRow() const;
+    std::shared_ptr<demo::ITaskService::IBasicConfig> buildTaskServiceConfig(int row,
+                                                                             bool* ok) const;
+
+    cppmicroservices::Framework* m_framework = nullptr;
+    QTextEdit* m_logTarget = nullptr;
+    
+    // UI elements
+    QPushButton* m_refreshServicesBtn = nullptr;
+    QTableView* m_taskServiceView = nullptr;
+    
+    // Model and delegate
+    TaskServiceTableModel* m_taskServiceModel = nullptr;
+    TaskServiceActionDelegate* m_taskServiceActionDelegate = nullptr;
+};
