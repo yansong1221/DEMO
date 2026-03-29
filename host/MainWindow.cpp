@@ -1,15 +1,17 @@
 #include "MainWindow.h"
-#include "BundleManagerDockWidget.h"
-#include "TaskServiceDockWidget.h"
+#include "bundle/BundleManagerDockWidget.h"
+#include "task/TaskServiceDockWidget.h"
+#include "log/LogWidget.h"
+#include "log/LogServiceImpl.h"
 
 #include <QCloseEvent>
 #include <QCoreApplication>
-#include <QTextEdit>
 #include <QVBoxLayout>
 #include <QWidget>
 
 #include <cppmicroservices/BundleContext.h>
 #include <cppmicroservices/FrameworkFactory.h>
+#include <cppmicroservices/logservice/LogService.hpp>
 
 #include <chrono>
 
@@ -22,6 +24,7 @@ MainWindow::MainWindow(QWidget* parent)
     m_framework.Start();
 
     setupUI();
+    setupLogService();
     setupDockWidgets();
     setupConnections();
     setupServiceListener();
@@ -33,13 +36,40 @@ MainWindow::~MainWindow()
 {
 }
 
+LogServiceImpl* MainWindow::getLogServiceImpl() const
+{
+    return m_logServiceImpl.get();
+}
+
 void MainWindow::setupUI()
 {
-    // 创建一个中心 widget 包含日志区域
-    m_logEdit = new QTextEdit(this);
-    m_logEdit->setReadOnly(true);
+    // 创建 LogWidget 作为中心控件
+    m_logWidget = new LogWidget(this);
+    
+    setPersistentCentralWidget(m_logWidget);
+}
 
-    setPersistentCentralWidget(m_logEdit);
+void MainWindow::setupLogService()
+{
+    // 创建 LogService 实现
+    m_logServiceImpl = std::make_shared<LogServiceImpl>();
+    
+    // 设置日志显示控件
+    m_logServiceImpl->setLogWidget(m_logWidget);
+    
+    // 注册 LogService 到框架
+    cppmicroservices::ServiceProperties props;
+    props["service.description"] = std::string("Qt-based LogService Implementation");
+    props["service.vendor"] = std::string("CppMicroServices Demo");
+    
+    m_framework.GetBundleContext().RegisterService<cppmicroservices::logservice::LogService>(
+        m_logServiceImpl, props);
+    m_framework.GetBundleContext().RegisterService<cppmicroservices::logservice::LoggerFactory>(
+        m_logServiceImpl, props);
+    
+    // 记录启动日志
+    m_logServiceImpl->Log(cppmicroservices::logservice::SeverityLevel::LOG_INFO, 
+                          "LogService registered successfully");
 }
 
 void MainWindow::setupDockWidgets()
@@ -52,7 +82,6 @@ void MainWindow::setupDockWidgets()
 
     // 创建任务服务 DockWidget
     m_taskServiceDock = new TaskServiceDockWidget(&m_framework, this);
-    m_taskServiceDock->setLogTarget(m_logEdit);
     addDockWidget(m_taskServiceDock, KDDockWidgets::Location_OnBottom, m_bundleManagerDock);
     m_taskServiceDock->show();
 }
@@ -135,8 +164,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::appendLog(const QString& line)
 {
-    if (m_logEdit) {
-        m_logEdit->append(line);
+    if (m_logWidget) {
+        m_logWidget->addLog(2, "host_app", line); // 2 = INFO level
     }
 }
 

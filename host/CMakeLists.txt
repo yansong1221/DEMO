@@ -1,3 +1,6 @@
+
+SET(MODULE host_app)
+
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(spdlog CONFIG REQUIRED)
 
@@ -13,36 +16,29 @@ set_target_properties(kddockwidgets PROPERTIES CXX_STANDARD 23 CXX_STANDARD_REQU
 
 set(CMAKE_AUTOMOC ON)
 
-add_executable(host_app
-    main.cpp
-    MainWindow.cpp
-    MainWindow.h
-    BundleManagerDockWidget.cpp
-    BundleManagerDockWidget.h
-    TaskServiceDockWidget.cpp
-    TaskServiceDockWidget.h
-    PluginBundleActionDelegate.cpp
-    PluginBundleActionDelegate.h
-    PluginBundleTableModel.cpp
-    PluginBundleTableModel.h
-    TaskServiceTableModel.cpp
-    TaskServiceTableModel.h
-    TaskServiceActionDelegate.cpp
-    TaskServiceActionDelegate.h
-    thread.hpp
-    imgui/imgui_impl_qt_opengl3.cpp
-    imgui/imgui_impl_qt_opengl3.h
-    imgui/imgui_impl_qt.h
-    imgui/imgui_impl_qt.cpp
-    imgui/QImguiWidget.cpp
-    imgui/QImguiWidget.h
-    TaskServiceConfigDialog.cpp
-    TaskServiceConfigDialog.h
-)
+file(GLOB_RECURSE MODULE_SOURCES 
+${CMAKE_CURRENT_SOURCE_DIR}/*.h 
+${CMAKE_CURRENT_SOURCE_DIR}/*.hpp 
+${CMAKE_CURRENT_SOURCE_DIR}/*.cpp 
+${CMAKE_CURRENT_SOURCE_DIR}/*.c 
+${CMAKE_CURRENT_SOURCE_DIR}/*.ui 
+${CMAKE_CURRENT_SOURCE_DIR}/*.rc)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${MODULE_SOURCES})
 
-target_link_libraries(host_app PRIVATE Qt5::Widgets KDAB::kddockwidgets CppMicroServices spdlog::spdlog imgui)
-target_link_libraries(host_app PRIVATE service_interface)
-set_target_properties(host_app PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+add_executable(${MODULE} ${MODULE_SOURCES})
+
+# 添加当前目录为包含目录，使子目录能找到根目录的头文件
+target_include_directories(${MODULE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+
+target_link_libraries(${MODULE} PRIVATE Qt5::Widgets KDAB::kddockwidgets CppMicroServices spdlog::spdlog imgui)
+target_link_libraries(${MODULE} PRIVATE service_interface)
+set_target_properties(${MODULE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+# 定义 Bundle 名称（用于 CppMicroServices 的 BundleActivator）
+target_compile_definitions(${MODULE} PRIVATE US_BUNDLE_NAME=${MODULE})
+
 if(MSVC)
-    target_compile_options(host_app PRIVATE /utf-8)
+    target_compile_options(${MODULE} PRIVATE /utf-8)
 endif()

@@ -7,7 +7,6 @@
 #include <cppmicroservices/FrameworkEvent.h>
 #include <cppmicroservices/ServiceReference.h>
 #include <cppmicroservices/ListenerToken.h>
-#include <QTextEdit>
 #include <memory>
 
 #include "demo/IGreetingService.h"
@@ -15,6 +14,8 @@
 
 class BundleManagerDockWidget;
 class TaskServiceDockWidget;
+class LogWidget;
+class LogServiceImpl;
 
 class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
 {
@@ -23,6 +24,9 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
+
+    // 获取 LogServiceImpl 实例（供其他组件使用）
+    LogServiceImpl* getLogServiceImpl() const;
 
 protected:
     void closeEvent(QCloseEvent* event) override;
@@ -35,6 +39,7 @@ private:
     void setupDockWidgets();
     void setupConnections();
     void setupServiceListener();
+    void setupLogService();
     void appendLog(const QString& line);
 
     cppmicroservices::Framework m_framework;
@@ -44,7 +49,10 @@ private:
     TaskServiceDockWidget* m_taskServiceDock = nullptr;
     
     // Log widget (persistent central widget)
-    QTextEdit* m_logEdit = nullptr;
+    LogWidget* m_logWidget = nullptr;
+    
+    // LogService implementation
+    std::shared_ptr<LogServiceImpl> m_logServiceImpl;
 
     struct PluginState
     {
