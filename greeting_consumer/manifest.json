@@ -1,0 +1,7 @@
+{
+  "bundle.symbolic_name": "greeting_consumer",
+  "bundle.version": "1.0.0",
+  "bundle.activator": true,
+  "bundle.name": "Greeting Consumer",
+  "bundle.description": "Consumes the greeting service"
+}

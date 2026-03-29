@@ -1,0 +1,169 @@
+#include "demo/GreetingActivator.h"
+
+#include <cppmicroservices/ServiceProperties.h>
+#include <cppmicroservices/logservice/LogService.hpp>
+
+#include <chrono>
+#include <iostream>
+#include <thread>
+
+#include <spdlog/spdlog.h>
+
+using namespace cppmicroservices;
+
+namespace demo {
+
+class DemoTaskConfig : public ITaskService::IBasicConfig
+{
+public:
+    void draw() override { }
+
+    void save(YAML::Node& conf) const override
+    {
+        conf["task_name"]    = taskName;
+        conf["interval_ms"]  = intervalMs;
+        conf["auto_restart"] = autoRestart;
+    }
+
+    void restore(YAML::Node conf) override
+    {
+        if (conf["task_name"]) {
+            taskName = conf["task_name"].as<std::string>();
+        }
+        if (conf["interval_ms"]) {
+            intervalMs = conf["interval_ms"].as<int>();
+        }
+        if (conf["auto_restart"]) {
+            autoRestart = conf["auto_restart"].as<bool>();
+        }
+    }
+
+    std::optional<std::string> displayName() const override { return taskName; }
+
+    std::string taskName = "demo.task";
+    int intervalMs       = 1000;
+    bool autoRestart     = false;
+};
+
+class GreetingTaskService : public ITaskService
+{
+public:
+    ~GreetingTaskService() { std::cout << "[TaskService] destructor" << std::endl; }
+
+    // ITaskService 接口实现
+    bool onThreadStart(std::shared_ptr<IBasicConfig> config) override
+    {
+        auto typedConfig = std::dynamic_pointer_cast<DemoTaskConfig>(config);
+        if (!typedConfig) {
+            typedConfig = std::make_shared<DemoTaskConfig>();
+            if (config) {
+                YAML::Node conf;
+                config->save(conf);
+                typedConfig->restore(conf);
+            }
+        }
+
+        m_lastConfig = typedConfig;
+        m_running    = true;
+        m_counter    = 0;
+
+        std::cout << "[TaskService] onThreadStart"
+                  << " task_name=" << typedConfig->taskName
+                  << " interval_ms=" << typedConfig->intervalMs
+                  << " auto_restart=" << std::boolalpha << typedConfig->autoRestart
+                  << " language=" << m_language << std::endl;
+        return true;
+    }
+
+    bool onThreadRun() override
+    {
+        if (!m_running) {
+            return false;
+        }
+
+        // 模拟任务执行
+        m_counter++;
+        if (m_counter % 10 == 0) {
+            spdlog::info("[TaskService] running... count= {}", m_counter);
+        }
+
+        // 模拟工作间隔
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(m_lastConfig ? m_lastConfig->intervalMs : 1000));
+
+        return true;
+    }
+
+    void onThreadEnd() override
+    {
+        m_running = false;
+        std::cout << "[TaskService] onThreadEnd"
+                  << " task_name="
+                  << (m_lastConfig ? m_lastConfig->taskName : std::string("demo.task"))
+                  << " final_count=" << m_counter << std::endl;
+    }
+
+    void setLanguage(std::string const& language) override
+    {
+        if (!language.empty()) {
+            m_language = language;
+        }
+    }
+
+    std::shared_ptr<IBasicConfig> createYamlConfig() const override
+    {
+        auto config = std::make_shared<DemoTaskConfig>();
+        if (m_lastConfig) {
+            *config = *m_lastConfig;
+        }
+        return config;
+    }
+
+    void setLogger(std::shared_ptr<spdlog::logger> logger) override
+    {
+        spdlog::set_default_logger(logger);
+    }
+
+    std::string name() const override { return "dome.task"; }
+
+private:
+    bool m_running                               = false;
+    int m_counter                                = 0;
+    std::shared_ptr<DemoTaskConfig> m_lastConfig = std::make_shared<DemoTaskConfig>();
+    std::string m_language                       = "zh-CN";
+};
+
+void GreetingActivator::Start(BundleContext context)
+{
+    m_service = std::make_shared<GreetingTaskService>();
+
+    ServiceProperties props;
+    props["service.description"] = std::string("Demo ITaskService with YAML configuration");
+    props["task.service.kind"]   = std::string("demo");
+
+    m_reg = context.RegisterService<ITaskService>(m_service, props);
+
+    auto ref    = context.GetServiceReference<cppmicroservices::logservice::LogService>();
+    auto logger = context.GetService(ref);
+
+    if (logger) {
+        auto l = logger->getLogger(context.GetBundle(), "3232");
+        l->info("GreetingActivator started and ITaskService registered.");
+    }
+
+
+    std::cout << "GreetingActivator::Start" << std::endl;
+}
+
+void GreetingActivator::Stop(BundleContext)
+{
+    m_reg.Unregister();
+    m_service.reset();
+
+    std::cout << "GreetingActivator::Stop" << std::endl;
+}
+
+} // namespace demo
+
+
+CPPMICROSERVICES_EXPORT_BUNDLE_ACTIVATOR(demo::GreetingActivator)

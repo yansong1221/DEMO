@@ -1,0 +1,7 @@
+{
+  "bundle.symbolic_name": "greeting_provider",
+  "bundle.version": "1.0.1",
+  "bundle.activator": true,
+  "bundle.name": "Greeting Provider",
+  "bundle.description": "Provides a simple greeting service"
+}
