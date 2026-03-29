@@ -32,4 +32,7 @@ if(NOT TARGET imgui)
     
     target_link_libraries(imgui PRIVATE Freetype::Freetype)
 
+    # 设置 VS 项目文件夹
+    set_target_properties(imgui PROPERTIES FOLDER "3rdparty")
+
 endif()
