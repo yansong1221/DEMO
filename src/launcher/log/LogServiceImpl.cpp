@@ -1,10 +1,12 @@
 #include "LogServiceImpl.h"
 #include "LogWidget.h"
 
-#include <QMetaObject>
+#include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
-#include <QCoreApplication>
+#include <QMetaObject>
+
+#include <spdlog/sinks/daily_file_sink.h>
 
 // LoggerImpl implementation
 
@@ -261,7 +263,6 @@ void LoggerImpl::warn(std::string const& message,
 // LogServiceImpl implementation
 
 LogServiceImpl::LogServiceImpl()
-    : m_logTextEdit(nullptr)
 {
     initSpdlog();
 }
@@ -279,28 +280,24 @@ void LogServiceImpl::initSpdlog()
     if (!dir.exists()) {
         dir.mkpath(".");
     }
-    
-    // 创建按天分割的滚动文件 logger
-    // 文件名格式：logs/log_yyyy-MM-dd.txt
-    QString todayFile = logDir + "/log_" + QDate::currentDate().toString("yyyy-MM-dd") + ".txt";
-    
     try {
-        // 文件 logger - 使用大小滚动作为后备（每个文件最大 10MB）
-        m_fileLogger = spdlog::rotating_logger_mt(
-            "file_logger",
-            todayFile.toStdString(),
-            10 * 1024 * 1024,  // 10MB
-            30                 // 保留 30 个文件
-        );
-        m_fileLogger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%n] %v");
-        m_fileLogger->set_level(spdlog::level::trace);
-        
-        spdlog::info("File logger initialized: {}", todayFile.toStdString());
+        auto file_name_pattern = std::format("{}\\%Y-%m-%d.log", logDir.toStdString());
+
+        auto file_sink = std::make_shared<spdlog::sinks::daily_file_format_sink_mt>(
+            file_name_pattern, 0, 0, false, 30);
+
+        spdlog::sinks_init_list sink_list = {file_sink};
+        m_fileLogger = std::make_shared<spdlog::logger>("file_logger", sink_list);
+        m_fileLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+        m_fileLogger->set_level(spdlog::level::info);
+
+        // m_fileLogger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%n] %v");
+        // m_fileLogger->set_level(spdlog::level::trace);
     }
     catch (const spdlog::spdlog_ex& ex) {
         spdlog::error("File logger init failed: {}", ex.what());
     }
-    
+
     // 注意：console logger 会在 setLogWidget 中创建
 }
 
@@ -308,7 +305,7 @@ void LogServiceImpl::setLogWidget(LogWidget* widget)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_logWidget = widget;
-    
+
     // 如果 LogWidget 内部有 QTextEdit，可以创建 qt sink
     // 这里暂时只使用文件 logger
 }
@@ -406,7 +403,7 @@ void LogServiceImpl::Log(cppmicroservices::ServiceReferenceBase const& sr,
 void LogServiceImpl::addLogEntry(int level, const QString& bundleName, const QString& message)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    
+
     // UI 更新
     if (m_logWidget) {
         QMetaObject::invokeMethod(
@@ -416,13 +413,14 @@ void LogServiceImpl::addLogEntry(int level, const QString& bundleName, const QSt
             },
             Qt::QueuedConnection);
     }
-    
+
     // spdlog 输出（自动异步，线程安全）
     if (m_fileLogger) {
-        spdlog::source_loc source{};
+        spdlog::source_loc source {};
         spdlog::level::level_enum spdLevel = static_cast<spdlog::level::level_enum>(level);
-        
-        m_fileLogger->log(source, spdLevel, "[{}] {}", bundleName.toStdString(), message.toStdString());
+
+        m_fileLogger->log(
+            source, spdLevel, "[{}] {}", bundleName.toStdString(), message.toStdString());
     }
 }
 
@@ -443,4 +441,3 @@ QString LogServiceImpl::getBundleName(const cppmicroservices::Bundle& bundle) co
         return "system";
     return QString::fromStdString(bundle.GetSymbolicName());
 }
-
