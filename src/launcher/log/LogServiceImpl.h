@@ -12,7 +12,12 @@
 #include <vector>
 #include <functional>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/qt_sinks.h>
+
 class LogWidget;
+class QTextEdit;
 
 // 日志级别映射：
 // LogService::SeverityLevel -> LogWidget level
@@ -89,7 +94,7 @@ class LogServiceImpl : public cppmicroservices::logservice::LogService
 {
 public:
     LogServiceImpl();
-    ~LogServiceImpl() override = default;
+    ~LogServiceImpl() override;
 
     // 设置日志显示控件
     void setLogWidget(LogWidget* widget);
@@ -113,7 +118,11 @@ public:
 private:
     int severityToLevel(cppmicroservices::logservice::SeverityLevel level) const;
     QString getBundleName(const cppmicroservices::Bundle& bundle) const;
+    void initSpdlog();
 
     mutable std::mutex m_mutex;
     LogWidget* m_logWidget = nullptr;
+    
+    // spdlog 相关
+    std::shared_ptr<spdlog::logger> m_fileLogger;     // 文件日志
 };

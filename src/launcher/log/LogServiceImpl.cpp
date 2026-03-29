@@ -2,6 +2,9 @@
 #include "LogWidget.h"
 
 #include <QMetaObject>
+#include <QDateTime>
+#include <QDir>
+#include <QCoreApplication>
 
 // LoggerImpl implementation
 
@@ -257,12 +260,57 @@ void LoggerImpl::warn(std::string const& message,
 
 // LogServiceImpl implementation
 
-LogServiceImpl::LogServiceImpl() = default;
+LogServiceImpl::LogServiceImpl()
+    : m_logTextEdit(nullptr)
+{
+    initSpdlog();
+}
+
+LogServiceImpl::~LogServiceImpl()
+{
+    spdlog::shutdown();
+}
+
+void LogServiceImpl::initSpdlog()
+{
+    // 获取日志目录（应用程序目录下的 logs）
+    QString logDir = QCoreApplication::applicationDirPath() + "/logs";
+    QDir dir(logDir);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    
+    // 创建按天分割的滚动文件 logger
+    // 文件名格式：logs/log_yyyy-MM-dd.txt
+    QString todayFile = logDir + "/log_" + QDate::currentDate().toString("yyyy-MM-dd") + ".txt";
+    
+    try {
+        // 文件 logger - 使用大小滚动作为后备（每个文件最大 10MB）
+        m_fileLogger = spdlog::rotating_logger_mt(
+            "file_logger",
+            todayFile.toStdString(),
+            10 * 1024 * 1024,  // 10MB
+            30                 // 保留 30 个文件
+        );
+        m_fileLogger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%n] %v");
+        m_fileLogger->set_level(spdlog::level::trace);
+        
+        spdlog::info("File logger initialized: {}", todayFile.toStdString());
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("File logger init failed: {}", ex.what());
+    }
+    
+    // 注意：console logger 会在 setLogWidget 中创建
+}
 
 void LogServiceImpl::setLogWidget(LogWidget* widget)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_logWidget = widget;
+    
+    // 如果 LogWidget 内部有 QTextEdit，可以创建 qt sink
+    // 这里暂时只使用文件 logger
 }
 
 LogWidget* LogServiceImpl::getLogWidget() const
@@ -358,14 +406,23 @@ void LogServiceImpl::Log(cppmicroservices::ServiceReferenceBase const& sr,
 void LogServiceImpl::addLogEntry(int level, const QString& bundleName, const QString& message)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    
+    // UI 更新
     if (m_logWidget) {
-        // 使用 QMetaObject::invokeMethod 确保在主线程执行
         QMetaObject::invokeMethod(
             m_logWidget,
             [this, level, bundleName, message]() {
                 m_logWidget->addLog(level, bundleName, message);
             },
             Qt::QueuedConnection);
+    }
+    
+    // spdlog 输出（自动异步，线程安全）
+    if (m_fileLogger) {
+        spdlog::source_loc source{};
+        spdlog::level::level_enum spdLevel = static_cast<spdlog::level::level_enum>(level);
+        
+        m_fileLogger->log(source, spdLevel, "[{}] {}", bundleName.toStdString(), message.toStdString());
     }
 }
 
@@ -386,3 +443,4 @@ QString LogServiceImpl::getBundleName(const cppmicroservices::Bundle& bundle) co
         return "system";
     return QString::fromStdString(bundle.GetSymbolicName());
 }
+
