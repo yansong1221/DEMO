@@ -25,12 +25,10 @@ public:
                                       QWidget* parent = nullptr);
     ~BundleManagerDockWidget() override;
 
-    QString currentPluginDir() const;
-    void setPluginDir(const QString& dir);
-
     void refreshBundleList();
     void loadBundle(int row);
     void unloadBundle(int row);
+    int bundleCount() const;
 
 signals:
     void logMessage(const QString& message);
@@ -38,7 +36,6 @@ signals:
     void bundleUnloaded(int row);
 
 private slots:
-    void onBrowsePluginFolder();
     void onRefreshBundleList();
     void onLoadBundleRow(int row);
     void onUnloadBundleRow(int row);
@@ -51,8 +48,6 @@ private:
     cppmicroservices::Framework* m_framework = nullptr;
     
     // UI elements
-    QLineEdit* m_pluginDirEdit = nullptr;
-    QPushButton* m_browseDirBtn = nullptr;
     QPushButton* m_refreshListBtn = nullptr;
     QTableView* m_bundleView = nullptr;
     

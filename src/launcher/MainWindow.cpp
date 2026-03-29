@@ -76,9 +76,15 @@ void MainWindow::setupDockWidgets()
 {
     // 创建 Bundle 管理 DockWidget
     m_bundleManagerDock = new BundleManagerDockWidget(&m_framework, this);
-    m_bundleManagerDock->setPluginDir(QCoreApplication::applicationDirPath());
     addDockWidget(m_bundleManagerDock, KDDockWidgets::Location_OnLeft);
     m_bundleManagerDock->show();
+    
+    // 首次启动自动加载所有 bundles
+    m_bundleManagerDock->refreshBundleList();
+    int count = m_bundleManagerDock->bundleCount();
+    for (int i = 0; i < count; ++i) {
+        m_bundleManagerDock->loadBundle(i);
+    }
 
     // 创建任务服务 DockWidget
     m_taskServiceDock = new TaskServiceDockWidget(&m_framework, this);

@@ -3,13 +3,11 @@
 
 #include <QCoreApplication>
 #include <QDir>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QItemSelectionModel>
 #include <QLabel>
-#include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTableView>
@@ -25,10 +23,16 @@ std::string toUtf8StdString(QString const& value)
     return std::string(utf8.constData(), static_cast<size_t>(utf8.size()));
 }
 
+// 获取默认插件目录（应用程序目录下的 bundles 文件夹）
+QString getDefaultPluginDir()
+{
+    return QCoreApplication::applicationDirPath() + "/bundles";
+}
+
 } // namespace
 
 BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::Framework* framework,
-                                                   QWidget* parent)
+                                                 QWidget* parent)
     : KDDockWidgets::QtWidgets::DockWidget(QStringLiteral("BundleManager"))
     , m_framework(framework)
 {
@@ -36,9 +40,6 @@ BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::Framework* fr
     setupUI();
     setupConnections();
 
-    // 设置初始目录
-    m_pluginDirEdit->setText(QCoreApplication::applicationDirPath());
-    
     // 启动监听器
     if (!m_bundleModel->attachBundleListener()) {
         emit logMessage(tr("[监听] 在模型中注册 Bundle 监听器失败。"));
@@ -53,27 +54,19 @@ BundleManagerDockWidget::~BundleManagerDockWidget()
 void BundleManagerDockWidget::setupUI()
 {
     auto* centralWidget = new QWidget(this);
-    auto* mainLayout = new QVBoxLayout(centralWidget);
+    auto* mainLayout    = new QVBoxLayout(centralWidget);
     mainLayout->setContentsMargins(4, 4, 4, 4);
     mainLayout->setSpacing(4);
 
-    // 目录选择行
-    auto* dirRowLayout = new QHBoxLayout();
-    dirRowLayout->setSpacing(4);
-    
-    auto* label = new QLabel(tr("插件目录:"), this);
-    m_pluginDirEdit = new QLineEdit(this);
-    m_pluginDirEdit->setPlaceholderText(tr("选择包含 .dll / .so 的目录"));
-    
-    m_browseDirBtn = new QPushButton(tr("浏览..."), this);
-    m_refreshListBtn = new QPushButton(tr("刷新 Bundle 列表"), this);
-    
-    dirRowLayout->addWidget(label);
-    dirRowLayout->addWidget(m_pluginDirEdit, 1);
-    dirRowLayout->addWidget(m_browseDirBtn);
-    dirRowLayout->addWidget(m_refreshListBtn);
-    
-    mainLayout->addLayout(dirRowLayout);
+    // 工具栏
+    auto* toolLayout = new QHBoxLayout();
+    toolLayout->setSpacing(4);
+
+    m_refreshListBtn = new QPushButton(tr("刷新 Bundles"), this);
+    toolLayout->addWidget(m_refreshListBtn);
+    toolLayout->addStretch();
+
+    mainLayout->addLayout(toolLayout);
 
     // Bundle 表格
     m_bundleView = new QTableView(this);
@@ -83,33 +76,37 @@ void BundleManagerDockWidget::setupUI()
     m_bundleView->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_bundleView->verticalHeader()->setVisible(false);
     m_bundleView->verticalHeader()->setDefaultSectionSize(30);
-    
+
     m_bundleModel = new PluginBundleTableModel(this);
-    connect(m_bundleModel, &PluginBundleTableModel::bundleLog, 
-            this, &BundleManagerDockWidget::logMessage);
+    connect(m_bundleModel,
+            &PluginBundleTableModel::bundleLog,
+            this,
+            &BundleManagerDockWidget::logMessage);
     m_bundleModel->setHostFramework(m_framework);
-    
+
     m_bundleView->setModel(m_bundleModel);
     m_bundleView->horizontalHeader()->setStretchLastSection(false);
     m_bundleView->horizontalHeader()->setSectionResizeMode(PluginBundleTableModel::ColDescription,
-                                                            QHeaderView::Stretch);
+                                                           QHeaderView::Stretch);
     m_bundleView->horizontalHeader()->setSectionResizeMode(PluginBundleTableModel::ColActions,
-                                                            QHeaderView::Fixed);
+                                                           QHeaderView::Fixed);
     m_bundleView->setColumnWidth(PluginBundleTableModel::ColActions, 90);
-    
+
     m_actionDelegate = new PluginBundleActionDelegate(m_bundleView);
     m_bundleView->setItemDelegateForColumn(PluginBundleTableModel::ColActions, m_actionDelegate);
-    
+
     mainLayout->addWidget(m_bundleView);
-    
+
     setWidget(centralWidget);
     setTitle(tr("Bundle 管理"));
 }
 
 void BundleManagerDockWidget::setupConnections()
 {
-    connect(m_browseDirBtn, &QPushButton::clicked, this, &BundleManagerDockWidget::onBrowsePluginFolder);
-    connect(m_refreshListBtn, &QPushButton::clicked, this, &BundleManagerDockWidget::onRefreshBundleList);
+    connect(m_refreshListBtn,
+            &QPushButton::clicked,
+            this,
+            &BundleManagerDockWidget::onRefreshBundleList);
     connect(m_bundleView->selectionModel(),
             &QItemSelectionModel::currentRowChanged,
             this,
@@ -124,19 +121,9 @@ void BundleManagerDockWidget::setupConnections()
             &BundleManagerDockWidget::onUnloadBundleRow);
 }
 
-QString BundleManagerDockWidget::currentPluginDir() const
-{
-    return m_pluginDirEdit->text();
-}
-
-void BundleManagerDockWidget::setPluginDir(const QString& dir)
-{
-    m_pluginDirEdit->setText(dir);
-}
-
 void BundleManagerDockWidget::refreshBundleList()
 {
-    m_bundleModel->rescanPluginDirectory(m_pluginDirEdit->text());
+    m_bundleModel->rescanPluginDirectory(getDefaultPluginDir());
 }
 
 void BundleManagerDockWidget::loadBundle(int row)
@@ -151,16 +138,9 @@ void BundleManagerDockWidget::unloadBundle(int row)
     emit bundleUnloaded(row);
 }
 
-void BundleManagerDockWidget::onBrowsePluginFolder()
+int BundleManagerDockWidget::bundleCount() const
 {
-    const QString dir = QFileDialog::getExistingDirectory(
-        this,
-        tr("选择插件目录"),
-        m_pluginDirEdit->text().isEmpty() ? QCoreApplication::applicationDirPath()
-                                           : m_pluginDirEdit->text());
-    if (!dir.isEmpty()) {
-        m_pluginDirEdit->setText(QDir::toNativeSeparators(dir));
-    }
+    return m_bundleModel->rowCount();
 }
 
 void BundleManagerDockWidget::onRefreshBundleList()
@@ -176,7 +156,7 @@ void BundleManagerDockWidget::onLoadBundleRow(int row)
 void BundleManagerDockWidget::onUnloadBundleRow(int row)
 {
     const QString symbolicName = m_bundleModel->symbolicNameAtRow(row);
-    const QString absPath = m_bundleModel->absPathAtRow(row);
+    const QString absPath      = m_bundleModel->absPathAtRow(row);
     const QString bundleName =
         symbolicName.isEmpty() ? QFileInfo(absPath).fileName() : symbolicName;
 
