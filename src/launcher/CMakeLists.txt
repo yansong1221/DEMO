@@ -1,5 +1,5 @@
 
-SET(MODULE host_app)
+SET(MODULE launcher)
 
 find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(spdlog CONFIG REQUIRED)
