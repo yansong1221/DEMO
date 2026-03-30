@@ -2,6 +2,7 @@
 
 #include "thread.hpp"
 
+#include "cppmicroservices/BundleContext.h"
 #include "service/ITaskService.h"
 #include <QAbstractTableModel>
 #include <QScopedPointer>
@@ -15,7 +16,7 @@
 #include <vector>
 
 namespace cppmicroservices {
-class Framework;
+class BundleContext;
 }
 
 // 前置声明
@@ -27,7 +28,6 @@ class TaskServiceEntry : public QObject, public Thread
     Q_OBJECT
 
 public:
-
     cppmicroservices::ServiceReference<service::ITaskService> m_ref;
     std::shared_ptr<service::ITaskService> service;
 
@@ -72,7 +72,8 @@ public:
         ColCount
     };
 
-    explicit TaskServiceTableModel(QObject* parent = nullptr);
+    explicit TaskServiceTableModel(cppmicroservices::BundleContext bundleContext,
+                                   QObject* parent = nullptr);
     ~TaskServiceTableModel() override;
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -83,7 +84,6 @@ public:
                         Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
 
-    void setFramework(cppmicroservices::Framework* framework);
     void refresh();
 
     bool attachListener();
@@ -101,12 +101,11 @@ private:
     void handleServiceRegistered(cppmicroservices::ServiceReferenceBase const& ref);
     void handleServiceUnregistering(cppmicroservices::ServiceReferenceBase const& ref);
     void handleServiceModified(cppmicroservices::ServiceReferenceBase const& ref);
-    int findEntryIndexByServiceReference(
-        cppmicroservices::ServiceReference<service::ITaskService> const& ref) const;
+    int findEntryIndexByServiceReference(cppmicroservices::ServiceReferenceBase const& ref) const;
 
     QString defaultTaskConfigYaml(std::shared_ptr<service::ITaskService> const& service) const;
 
-    cppmicroservices::Framework* m_framework = nullptr;
+    cppmicroservices::BundleContext m_bundleContext;
     cppmicroservices::ListenerToken m_listenerToken;
     std::vector<std::unique_ptr<TaskServiceEntry>> m_entries;
     QString m_lastSelectedName;

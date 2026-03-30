@@ -13,12 +13,12 @@
 #include <QVBoxLayout>
 
 #include "common/Logger.h"
-#include <cppmicroservices/Framework.h>
+#include <cppmicroservices/BundleContext.h>
 
-TaskServiceDockWidget::TaskServiceDockWidget(cppmicroservices::Framework* framework,
+TaskServiceDockWidget::TaskServiceDockWidget(cppmicroservices::BundleContext bundleContext,
                                              QWidget* parent)
     : KDDockWidgets::QtWidgets::DockWidget(QStringLiteral("TaskServiceManager"))
-    , m_framework(framework)
+    , m_bundleContext(bundleContext)
 {
     Q_UNUSED(parent)
     setupUI();
@@ -63,9 +63,7 @@ void TaskServiceDockWidget::setupUI()
     m_taskServiceView->verticalHeader()->setVisible(false);
     m_taskServiceView->horizontalHeader()->setStretchLastSection(true);
 
-    m_taskServiceModel = new TaskServiceTableModel(this);
-    m_taskServiceModel->setFramework(m_framework);
-
+    m_taskServiceModel = new TaskServiceTableModel(m_bundleContext, this);
     m_taskServiceView->setModel(m_taskServiceModel);
     m_taskServiceView->horizontalHeader()->setStretchLastSection(false);
     m_taskServiceView->horizontalHeader()->setSectionResizeMode(TaskServiceTableModel::ColName,

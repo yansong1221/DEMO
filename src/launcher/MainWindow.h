@@ -3,6 +3,7 @@
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <kddockwidgets/qtwidgets/views/MainWindow.h>
 
+#include <cppmicroservices/BundleContext.h>
 #include <cppmicroservices/Framework.h>
 #include <cppmicroservices/FrameworkEvent.h>
 #include <cppmicroservices/ListenerToken.h>
@@ -24,7 +25,7 @@ class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
+    explicit MainWindow(cppmicroservices::BundleContext bundleContext, QWidget* parent = nullptr);
     ~MainWindow() override;
 
 protected:
@@ -36,7 +37,7 @@ private:
     void setupServiceListener();
     void setupLogService();
 
-    cppmicroservices::Framework m_framework;
+    cppmicroservices::BundleContext m_bundleContext;
 
     // Dock widgets
     BundleManagerDockWidget* m_bundleManagerDock = nullptr;

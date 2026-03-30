@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TaskServiceTableModel.h"
+#include <cppmicroservices/BundleContext.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <memory>
 
@@ -12,17 +13,14 @@ QT_END_NAMESPACE
 
 class TaskServiceActionDelegate;
 
-namespace cppmicroservices {
-class Framework;
-}
 
 class TaskServiceDockWidget : public KDDockWidgets::QtWidgets::DockWidget
 {
     Q_OBJECT
 
 public:
-    explicit TaskServiceDockWidget(cppmicroservices::Framework* framework,
-                                    QWidget* parent = nullptr);
+    explicit TaskServiceDockWidget(cppmicroservices::BundleContext bundleContext,
+                                   QWidget* parent = nullptr);
     ~TaskServiceDockWidget() override;
 
     void refreshTaskServices();
@@ -45,15 +43,15 @@ private:
     void setupConnections();
     int currentTaskServiceRow() const;
     std::shared_ptr<service::ITaskService::IBasicConfig> buildTaskServiceConfig(int row,
-                                                                             bool* ok) const;
+                                                                                bool* ok) const;
 
-    cppmicroservices::Framework* m_framework = nullptr;
-    
+    cppmicroservices::BundleContext m_bundleContext;
+
     // UI elements
     QPushButton* m_refreshServicesBtn = nullptr;
-    QTableView* m_taskServiceView = nullptr;
-    
+    QTableView* m_taskServiceView     = nullptr;
+
     // Model and delegate
-    TaskServiceTableModel* m_taskServiceModel = nullptr;
+    TaskServiceTableModel* m_taskServiceModel              = nullptr;
     TaskServiceActionDelegate* m_taskServiceActionDelegate = nullptr;
 };

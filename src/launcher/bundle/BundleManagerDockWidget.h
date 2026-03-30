@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PluginBundleTableModel.h"
+#include <cppmicroservices/BundleContext.h>
 #include <kddockwidgets/qtwidgets/views/DockWidget.h>
 #include <memory>
 
@@ -13,7 +14,7 @@ QT_END_NAMESPACE
 class PluginBundleActionDelegate;
 
 namespace cppmicroservices {
-class Framework;
+class BundleContext;
 }
 
 class BundleManagerDockWidget : public KDDockWidgets::QtWidgets::DockWidget
@@ -21,8 +22,8 @@ class BundleManagerDockWidget : public KDDockWidgets::QtWidgets::DockWidget
     Q_OBJECT
 
 public:
-    explicit BundleManagerDockWidget(cppmicroservices::Framework* framework,
-                                      QWidget* parent = nullptr);
+    explicit BundleManagerDockWidget(cppmicroservices::BundleContext const& bundleContext,
+                                     QWidget* parent = nullptr);
     ~BundleManagerDockWidget() override;
 
     void refreshBundleList();
@@ -44,13 +45,13 @@ private:
     void setupUI();
     void setupConnections();
 
-    cppmicroservices::Framework* m_framework = nullptr;
-    
+    cppmicroservices::BundleContext m_bundleContext;
+
     // UI elements
     QPushButton* m_refreshListBtn = nullptr;
-    QTableView* m_bundleView = nullptr;
-    
+    QTableView* m_bundleView      = nullptr;
+
     // Model and delegate
-    PluginBundleTableModel* m_bundleModel = nullptr;
+    PluginBundleTableModel* m_bundleModel        = nullptr;
     PluginBundleActionDelegate* m_actionDelegate = nullptr;
 };

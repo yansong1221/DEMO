@@ -40,13 +40,12 @@ bool sameBundleLocation(QString const& absPath, std::string const& bundleLocatio
     return a.compare(b, Qt::CaseInsensitive) == 0;
 }
 
-Bundle findHostBundle(Framework* fw, QString const& absPath, std::string const& symbolicName)
+Bundle findHostBundle(BundleContext ctx, QString const& absPath, std::string const& symbolicName)
 {
-    if (!fw) {
+    if (!ctx) {
         return Bundle {};
     }
     try {
-        auto ctx = fw->GetBundleContext();
         for (auto& b : ctx.GetBundles()) {
             if (b.GetBundleId() == 0) {
                 continue;
@@ -104,19 +103,16 @@ bool bundleEventAffectsHostStateColumn(BundleEvent::Type t)
 
 } // namespace
 
-PluginBundleTableModel::PluginBundleTableModel(QObject* parent)
+PluginBundleTableModel::PluginBundleTableModel(cppmicroservices::BundleContext bundleContext,
+                                               QObject* parent)
     : QAbstractTableModel(parent)
+    , m_hostContext(bundleContext)
 {
 }
 
 PluginBundleTableModel::~PluginBundleTableModel()
 {
     detachBundleListener();
-}
-
-void PluginBundleTableModel::setHostFramework(Framework* framework)
-{
-    m_hostFramework = framework;
 }
 
 QString PluginBundleTableModel::bundleStateLabel(Bundle::State state) const
@@ -145,7 +141,7 @@ QString PluginBundleTableModel::bundleStateLabel(Bundle::State state) const
 HostRowState PluginBundleTableModel::resolveHostRowState(QString const& absPath,
                                                          std::string const& sym) const
 {
-    Bundle b = findHostBundle(m_hostFramework, absPath, sym);
+    Bundle b = findHostBundle(m_hostContext, absPath, sym);
     if (!b) {
         return {tr("未安装"), true, false};
     }
@@ -163,12 +159,11 @@ HostRowState PluginBundleTableModel::resolveHostRowState(QString const& absPath,
 bool PluginBundleTableModel::attachBundleListener()
 {
     detachBundleListener();
-    if (!m_hostFramework) {
+    if (!m_hostContext) {
         return false;
     }
     try {
-        auto ctx              = m_hostFramework->GetBundleContext();
-        m_bundleListenerToken = ctx.AddBundleListener([this](BundleEvent const& evt) {
+        m_bundleListenerToken = m_hostContext.AddBundleListener([this](BundleEvent const& evt) {
             if (!evt) {
                 return;
             }
@@ -184,9 +179,9 @@ bool PluginBundleTableModel::attachBundleListener()
 
 void PluginBundleTableModel::detachBundleListener()
 {
-    if (m_bundleListenerToken && m_hostFramework) {
+    if (m_bundleListenerToken && m_hostContext) {
         try {
-            m_hostFramework->GetBundleContext().RemoveListener(std::move(m_bundleListenerToken));
+            m_hostContext.RemoveListener(std::move(m_bundleListenerToken));
         }
         catch (...) {
         }
@@ -195,7 +190,7 @@ void PluginBundleTableModel::detachBundleListener()
 
 void PluginBundleTableModel::applyBundleEvent(BundleEvent const& evt)
 {
-    if (!m_hostFramework || !evt) {
+    if (!m_hostContext || !evt) {
         return;
     }
     const BundleEvent::Type t = evt.GetType();
@@ -236,7 +231,7 @@ int PluginBundleTableModel::findRowForHostBundle(Bundle const& b) const
 
 void PluginBundleTableModel::refreshHostStateAtRow(int row)
 {
-    if (!m_hostFramework || row < 0 || row >= static_cast<int>(m_rows.size())) {
+    if (!m_hostContext || row < 0 || row >= static_cast<int>(m_rows.size())) {
         return;
     }
     const QByteArray symUtf8 = m_rows[static_cast<size_t>(row)].symbolicName.toUtf8();
@@ -258,12 +253,11 @@ void PluginBundleTableModel::refreshHostStateAtRow(int row)
 
 void PluginBundleTableModel::ensureServiceTimeStartedIfPresent()
 {
-    if (!m_hostFramework) {
+    if (!m_hostContext) {
         return;
     }
     try {
-        auto ctx = m_hostFramework->GetBundleContext();
-        for (auto& b : ctx.GetBundles()) {
+        for (auto& b : m_hostContext.GetBundles()) {
             if (b.GetSymbolicName() != kServiceTimeSymbolic) {
                 continue;
             }
@@ -280,12 +274,12 @@ void PluginBundleTableModel::ensureServiceTimeStartedIfPresent()
 
 void PluginBundleTableModel::startAllBundlesInHost()
 {
-    if (!m_hostFramework) {
+    if (!m_hostContext) {
         return;
     }
+
     try {
-        auto ctx     = m_hostFramework->GetBundleContext();
-        auto bundles = ctx.GetBundles();
+        auto bundles = m_hostContext.GetBundles();
         auto iter    = std::find_if(bundles.begin(), bundles.end(), [](Bundle& b) {
             return b.GetSymbolicName() == kServiceTimeSymbolic;
         });
@@ -412,15 +406,15 @@ void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
 
 void PluginBundleTableModel::installBundlesFromFiles(QStringList const& absolutePaths)
 {
-    if (!m_hostFramework) {
+    if (!m_hostContext) {
         common::Logger::error(tr("[加载] 框架未就绪。").toStdString());
         return;
     }
-    auto ctx = m_hostFramework->GetBundleContext();
+
     for (const QString& f : absolutePaths) {
         try {
             const std::string loc = pathForInstall(f);
-            auto installed        = ctx.InstallBundles(loc);
+            auto installed        = m_hostContext.InstallBundles(loc);
             common::Logger::info(tr("已安装：%1（%2 个 bundle）")
                                      .arg(f)
                                      .arg(static_cast<int>(installed.size()))
@@ -439,7 +433,7 @@ void PluginBundleTableModel::installBundlesFromFiles(QStringList const& absolute
 
 void PluginBundleTableModel::startBundleRow(int row)
 {
-    if (!m_hostFramework) {
+    if (!m_hostContext) {
         common::Logger::error(tr("[启动] 框架未就绪。").toStdString());
         return;
     }
@@ -456,9 +450,8 @@ void PluginBundleTableModel::startBundleRow(int row)
         return;
     }
     try {
-        auto ctx = m_hostFramework->GetBundleContext();
-        ctx.InstallBundles(pathForInstall(absPath));
-        Bundle b = findHostBundle(m_hostFramework, absPath, sym);
+        m_hostContext.InstallBundles(pathForInstall(absPath));
+        Bundle b = findHostBundle(m_hostContext, absPath, sym);
         if (!b) {
             common::Logger::error(
                 tr("[启动] 已安装但仍未匹配到 Bundle（检查路径与 symbolic name）。").toStdString());
@@ -481,7 +474,7 @@ void PluginBundleTableModel::startBundleRow(int row)
 
 void PluginBundleTableModel::stopBundleRow(int row)
 {
-    if (!m_hostFramework) {
+    if (!m_hostContext) {
         common::Logger::error(tr("[启动] 框架未就绪。").toStdString());
         return;
     }
@@ -499,7 +492,7 @@ void PluginBundleTableModel::stopBundleRow(int row)
         return;
     }
     try {
-        Bundle b = findHostBundle(m_hostFramework, absPath, sym);
+        Bundle b = findHostBundle(m_hostContext, absPath, sym);
         if (!b) {
             common::Logger::error(tr("[停止] 主框架中未安装该 Bundle。").toStdString());
             return;

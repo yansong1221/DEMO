@@ -11,24 +11,40 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <cppmicroservices/BundleContext.h>
+
 #include <cppmicroservices/FrameworkFactory.h>
 #include <cppmicroservices/logservice/LogService.hpp>
 
+#include <QCoreApplication>
+#include <QDir>
 #include <chrono>
 
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(cppmicroservices::BundleContext bundleContext, QWidget* parent)
     : KDDockWidgets::QtWidgets::MainWindow(
           QStringLiteral("MainWindow"), KDDockWidgets::MainWindowOption_HasCentralWidget, parent)
-    , m_framework(cppmicroservices::FrameworkFactory {}.NewFramework())
+    , m_bundleContext(bundleContext)
 {
-    m_framework.Init();
-    m_framework.Start();
-
     setupUI();
     setupLogService();
 
-    common::Logger::init(m_framework.GetBundleContext());
+    {
+        QDir dir(QCoreApplication::applicationDirPath());
+
+        QStringList filters;
+        filters << "*.dll";
+
+        for (const QFileInfo& fileInfo : dir.entryInfoList(filters, QDir::Files)) {
+            try {
+                m_bundleContext.InstallBundles(fileInfo.absoluteFilePath().toStdString());
+            }
+            catch (...) {
+            }
+        }
+
+        for (auto bundle : m_bundleContext.GetBundles())
+            bundle.Start();
+    }
+    common::Logger::init(m_bundleContext);
 
     setupServiceListener();
     setupDockWidgets();
@@ -62,10 +78,8 @@ void MainWindow::setupLogService()
     props["service.description"] = std::string("Qt-based LogService Implementation");
     props["service.vendor"]      = std::string("CppMicroServices Demo");
 
-    m_framework.GetBundleContext().RegisterService<cppmicroservices::logservice::LogService>(
-        m_logServiceImpl, props);
-    m_framework.GetBundleContext().RegisterService<cppmicroservices::logservice::LoggerFactory>(
-        m_logServiceImpl, props);
+    m_bundleContext.RegisterService<cppmicroservices::logservice::LogService>(m_logServiceImpl,
+                                                                              props);
 
     // 记录启动日志
     m_logServiceImpl->Log(cppmicroservices::logservice::SeverityLevel::LOG_INFO,
@@ -75,7 +89,7 @@ void MainWindow::setupLogService()
 void MainWindow::setupDockWidgets()
 {
     // 创建 Bundle 管理 DockWidget
-    m_bundleManagerDock = new BundleManagerDockWidget(&m_framework, this);
+    m_bundleManagerDock = new BundleManagerDockWidget(m_bundleContext, this);
     addDockWidget(m_bundleManagerDock, KDDockWidgets::Location_OnLeft);
     m_bundleManagerDock->show();
 
@@ -87,21 +101,20 @@ void MainWindow::setupDockWidgets()
     }
 
     // 创建任务服务 DockWidget
-    m_taskServiceDock = new TaskServiceDockWidget(&m_framework, this);
+    m_taskServiceDock = new TaskServiceDockWidget(m_bundleContext, this);
     addDockWidget(m_taskServiceDock, KDDockWidgets::Location_OnBottom, m_bundleManagerDock);
     m_taskServiceDock->show();
 }
 
 void MainWindow::setupServiceListener()
 {
-    m_ListenerToken = m_framework.GetBundleContext().AddServiceListener(
-        [this](cppmicroservices::ServiceEvent const& evt) {
+    m_ListenerToken =
+        m_bundleContext.AddServiceListener([this](cppmicroservices::ServiceEvent const& evt) {
             auto type     = evt.GetType();
             auto eventRef = evt.GetServiceReference();
 
             if (type & cppmicroservices::ServiceEvent::SERVICE_REGISTERED) {
-                auto ctx     = m_framework.GetBundleContext();
-                auto service = ctx.GetService<IWidgetService>(eventRef);
+                auto service = m_bundleContext.GetService<IWidgetService>(eventRef);
                 if (!service) {
                     return;
                 }
@@ -139,25 +152,23 @@ void MainWindow::setupServiceListener()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    // 清理插件 dock widgets
-    for (auto& plugin : m_Plugins) {
-        if (plugin.dock_w) {
-            plugin.dock_w->close();
-            plugin.dock_w->deleteLater();
-        }
-    }
-    m_Plugins.clear();
-
-    for (auto& bundle : m_framework.GetBundleContext().GetBundles()) {
+    for (auto bundle : m_bundleContext.GetBundles()) {
+        if (bundle == m_bundleContext.GetBundle())
+            continue;
+        auto s = bundle.GetSymbolicName();
         bundle.Stop();
     }
+    // for (auto bundle : m_bundleContext.GetBundles()) {
+    //     if (bundle == m_bundleContext.GetBundle())
+    //         continue;
+    //     auto s = bundle.GetSymbolicName();
+    //     bundle.Stop();
+    // }
 
-    m_framework.GetBundleContext().RemoveListener(std::move(m_ListenerToken));
+    m_Plugins.clear();
+    m_bundleContext.RemoveListener(std::move(m_ListenerToken));
 
     common::Logger::reset();
-
-    m_framework.Stop();
-    m_framework.WaitForStop((std::chrono::milliseconds::max)());
 
     KDDockWidgets::QtWidgets::MainWindow::closeEvent(event);
 }

@@ -1,18 +1,16 @@
 #pragma once
 
 #include <QAbstractTableModel>
-#include <cppmicroservices/Bundle.h>
-#include <cppmicroservices/BundleEvent.h>
-#include <cppmicroservices/ListenerToken.h>
 #include <QString>
 #include <QStringList>
+#include <cppmicroservices/Bundle.h>
+#include <cppmicroservices/BundleContext.h>
+#include <cppmicroservices/BundleEvent.h>
+#include <cppmicroservices/ListenerToken.h>
 #include <vector>
 
-namespace cppmicroservices {
-    class Framework;
-}
-
-struct PluginBundleRow {
+struct PluginBundleRow
+{
     QString fileName;
     QString absPath;
     QString symbolicName;
@@ -22,20 +20,23 @@ struct PluginBundleRow {
     QString manifestText;
     QString hostState;
     bool actionStartEnabled = true;
-    bool actionStopEnabled = false;
+    bool actionStopEnabled  = false;
 };
 
-struct HostRowState {
+struct HostRowState
+{
     QString label;
     bool startEnabled = true;
-    bool stopEnabled = false;
+    bool stopEnabled  = false;
 };
 
-class PluginBundleTableModel : public QAbstractTableModel {
+class PluginBundleTableModel : public QAbstractTableModel
+{
     Q_OBJECT
 
 public:
-    enum Column {
+    enum Column
+    {
         ColFile = 0,
         ColSymbolicName,
         ColVersion,
@@ -46,16 +47,18 @@ public:
         ColCount
     };
 
-    explicit PluginBundleTableModel(QObject* parent = nullptr);
+    explicit PluginBundleTableModel(cppmicroservices::BundleContext bundleContext,
+                                    QObject* parent = nullptr);
     ~PluginBundleTableModel() override;
 
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     int columnCount(const QModelIndex& parent = QModelIndex()) const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section,
+                        Qt::Orientation orientation,
+                        int role = Qt::DisplayRole) const override;
 
-    void setHostFramework(cppmicroservices::Framework* framework);
     void setRows(QList<PluginBundleRow> rows);
     QString manifestTextAtRow(int row) const;
     QString absPathAtRow(int row) const;
@@ -81,6 +84,6 @@ private:
     void ensureServiceTimeStartedIfPresent();
 
     QList<PluginBundleRow> m_rows;
-    cppmicroservices::Framework* m_hostFramework = nullptr;
+    cppmicroservices::BundleContext m_hostContext;
     cppmicroservices::ListenerToken m_bundleListenerToken;
 };

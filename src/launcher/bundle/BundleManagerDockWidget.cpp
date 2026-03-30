@@ -14,7 +14,7 @@
 #include <QVBoxLayout>
 
 #include "common/Logger.h"
-#include <cppmicroservices/Framework.h>
+#include <cppmicroservices/BundleContext.h>
 
 namespace {
 
@@ -32,10 +32,10 @@ QString getDefaultPluginDir()
 
 } // namespace
 
-BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::Framework* framework,
+BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::BundleContext const& bundleContext,
                                                  QWidget* parent)
     : KDDockWidgets::QtWidgets::DockWidget(QStringLiteral("BundleManager"))
-    , m_framework(framework)
+    , m_bundleContext(bundleContext)
 {
     Q_UNUSED(parent)
     setupUI();
@@ -78,8 +78,7 @@ void BundleManagerDockWidget::setupUI()
     m_bundleView->verticalHeader()->setVisible(false);
     m_bundleView->verticalHeader()->setDefaultSectionSize(30);
 
-    m_bundleModel = new PluginBundleTableModel(this);
-    m_bundleModel->setHostFramework(m_framework);
+    m_bundleModel = new PluginBundleTableModel(m_bundleContext, this);
 
     m_bundleView->setModel(m_bundleModel);
     m_bundleView->horizontalHeader()->setStretchLastSection(false);

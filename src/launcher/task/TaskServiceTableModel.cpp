@@ -115,19 +115,16 @@ void TaskServiceEntry::onThreadEnd()
     emit serviceStopped(this);
 }
 
-TaskServiceTableModel::TaskServiceTableModel(QObject* parent)
+TaskServiceTableModel::TaskServiceTableModel(cppmicroservices::BundleContext bundleContext,
+                                             QObject* parent)
     : QAbstractTableModel(parent)
+    , m_bundleContext(bundleContext)
 {
 }
 
 TaskServiceTableModel::~TaskServiceTableModel()
 {
     detachListener();
-}
-
-void TaskServiceTableModel::setFramework(cppmicroservices::Framework* framework)
-{
-    m_framework = framework;
 }
 
 int TaskServiceTableModel::rowCount(const QModelIndex& parent) const
@@ -203,36 +200,32 @@ void TaskServiceTableModel::refresh()
     m_entries.clear();
     endResetModel();
 
-    if (m_framework) {
-        try {
-            auto ctx        = m_framework->GetBundleContext();
-            const auto refs = ctx.GetServiceReferences<service::ITaskService>();
-            for (auto const& ref : refs) {
-                handleServiceRegistered(ref);
-            }
+    try {
+        const auto refs = m_bundleContext.GetServiceReferences<service::ITaskService>();
+        for (auto const& ref : refs) {
+            handleServiceRegistered(ref);
         }
-        catch (const std::exception& e) {
-            common::Logger::error(tr("[任务服务] 刷新服务列表失败：%1")
-                                      .arg(QString::fromUtf8(e.what()))
-                                      .toStdString());
-        }
+    }
+    catch (const std::exception& e) {
+        common::Logger::error(
+            tr("[任务服务] 刷新服务列表失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
 }
 
 bool TaskServiceTableModel::attachListener()
 {
     detachListener();
-    if (!m_framework) {
+    if (!m_bundleContext) {
         return false;
     }
     try {
-        auto ctx        = m_framework->GetBundleContext();
-        m_listenerToken = ctx.AddServiceListener([this](cppmicroservices::ServiceEvent const& evt) {
-            if (!evt) {
-                return;
-            }
-            QMetaObject::invokeMethod(this, [this, evt]() { onServiceEvent(evt); });
-        });
+        m_listenerToken =
+            m_bundleContext.AddServiceListener([this](cppmicroservices::ServiceEvent const& evt) {
+                if (!evt) {
+                    return;
+                }
+                QMetaObject::invokeMethod(this, [this, evt]() { onServiceEvent(evt); });
+            });
         return static_cast<bool>(m_listenerToken);
     }
     catch (const std::exception& e) {
@@ -244,9 +237,9 @@ bool TaskServiceTableModel::attachListener()
 
 void TaskServiceTableModel::detachListener()
 {
-    if (m_listenerToken && m_framework) {
+    if (m_listenerToken && m_bundleContext) {
         try {
-            m_framework->GetBundleContext().RemoveListener(std::move(m_listenerToken));
+            m_bundleContext.RemoveListener(std::move(m_listenerToken));
         }
         catch (...) {
         }
@@ -286,13 +279,8 @@ void TaskServiceTableModel::onServiceEvent(cppmicroservices::ServiceEvent const&
 void TaskServiceTableModel::handleServiceRegistered(
     cppmicroservices::ServiceReferenceBase const& ref)
 {
-    if (!m_framework) {
-        return;
-    }
-
     try {
-        auto ctx     = m_framework->GetBundleContext();
-        auto service = ctx.GetService<service::ITaskService>(ref);
+        auto service = m_bundleContext.GetService<service::ITaskService>(ref);
         if (!service) {
             return;
         }
@@ -384,10 +372,6 @@ void TaskServiceTableModel::handleServiceUnregistering(
 
 void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceReferenceBase const& ref)
 {
-    if (!m_framework) {
-        return;
-    }
-
     int index = findEntryIndexByServiceReference(ref);
     if (index < 0) {
         // 如果不存在，尝试作为新服务添加
@@ -396,8 +380,7 @@ void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceRefer
     }
 
     try {
-        auto ctx     = m_framework->GetBundleContext();
-        auto service = ctx.GetService<service::ITaskService>(ref);
+        auto service = m_bundleContext.GetService<service::ITaskService>(ref);
         if (!service) {
             return;
         }
@@ -414,29 +397,13 @@ void TaskServiceTableModel::handleServiceModified(cppmicroservices::ServiceRefer
 }
 
 int TaskServiceTableModel::findEntryIndexByServiceReference(
-    cppmicroservices::ServiceReference<service::ITaskService> const& ref) const
+    cppmicroservices::ServiceReferenceBase const& ref) const
 {
-    if (!m_framework) {
-        return -1;
-    }
-
-    try {
-        // 使用服务 ID 来匹配
-        auto ctx     = m_framework->GetBundleContext();
-        auto service = ctx.GetService(ref);
-        if (!service) {
-            return -1;
-        }
-
-        for (size_t i = 0; i < m_entries.size(); ++i) {
-            if (m_entries[i]->service == service) {
-                return static_cast<int>(i);
-            }
+    for (size_t i = 0; i < m_entries.size(); ++i) {
+        if (m_entries[i]->m_ref == ref) {
+            return i;
         }
     }
-    catch (...) {
-    }
-
     return -1;
 }
 

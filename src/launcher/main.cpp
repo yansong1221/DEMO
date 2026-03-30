@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 
 #include <QApplication>
+#include <cppmicroservices/FrameworkFactory.h>
 
 int main(int argc, char** argv)
 {
@@ -15,8 +16,19 @@ int main(int argc, char** argv)
 
     QApplication::setApplicationName(QStringLiteral("CppMicroServicesHost"));
 
-    MainWindow w;
+    cppmicroservices::FrameworkFactory factory;
+    auto framework = factory.NewFramework();
+    framework.Init();
+    framework.Start();
+
+    MainWindow w(framework.GetBundleContext());
     w.resize(1024, 768);
     w.show();
-    return app.exec();
+
+    int ret = app.exec();
+
+    framework.Stop();
+    framework.WaitForStop((std::chrono::milliseconds::max)());
+
+    return ret;
 }

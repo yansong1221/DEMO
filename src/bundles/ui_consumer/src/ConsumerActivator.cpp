@@ -1,4 +1,5 @@
 #include "service/IWidgetService.h"
+#include <QCoreApplication>
 #include <QLabel>
 #include <cppmicroservices/BundleActivator.h>
 #include <cppmicroservices/BundleContext.h>
