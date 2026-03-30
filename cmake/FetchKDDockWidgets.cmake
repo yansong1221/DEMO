@@ -7,6 +7,7 @@ include(FetchContent)
 set(_OLD_USE_FOLDERS ${USE_FOLDERS})
 set(CMAKE_FOLDER "3rdparty")
 
+option(KDDockWidgets_QT6 "Build with Qt6" OFF)
 # 声明 KDDockWidgets 依赖
 FetchContent_Declare(
     KDDockWidgets

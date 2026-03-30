@@ -34,6 +34,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+include(FetchCppMicroServices)
+
 # 1. 查找包
 find_package(CppMicroServices REQUIRED CONFIG)
 

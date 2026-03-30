@@ -24,7 +24,7 @@ add_executable(${MODULE} ${MODULE_SOURCES})
 target_include_directories(${MODULE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 
-target_link_libraries(${MODULE} PRIVATE Qt5::Widgets KDAB::kddockwidgets CppMicroServices spdlog::spdlog imgui)
+target_link_libraries(${MODULE} PRIVATE Qt5::Widgets KDAB::kddockwidgets CppMicroServices usLogService spdlog::spdlog imgui)
 target_link_libraries(${MODULE} PRIVATE service_interface)
 set_target_properties(${MODULE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
