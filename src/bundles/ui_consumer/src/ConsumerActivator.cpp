@@ -12,7 +12,11 @@ using namespace cppmicroservices;
 class UiImpl : public service::IWidgetPlus
 {
 public:
-    UiImpl() { w_ = new QLabel("Hello from the widget service!"); }
+    UiImpl()
+    {
+        w_ = new QLabel("Hello from the widget service!");
+        w_->setWindowTitle("Hello");
+    }
     ~UiImpl()
     {
         std::cout << "UiImpl destructor" << std::endl;
@@ -46,8 +50,9 @@ public:
     }
 
 private:
-    cppmicroservices::ServiceRegistration<service::IWidgetService> m_reg;
-    std::shared_ptr<service::IWidgetService> m_service;
+    cppmicroservices::ServiceRegistration<UiImpl> m_reg;
+    std::shared_ptr<UiImpl> m_service;
+
 };
 } // namespace demo
 CPPMICROSERVICES_EXPORT_BUNDLE_ACTIVATOR(demo::ConsumerActivator)

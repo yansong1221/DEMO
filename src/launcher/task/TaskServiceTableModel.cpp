@@ -65,6 +65,8 @@ bool TaskServiceEntry::stopService(uint32_t millisecond)
         return true; // 已经停止
     }
 
+    service->requestStop();
+
     return stopThread(millisecond);
 }
 
@@ -325,7 +327,7 @@ void TaskServiceTableModel::handleServiceRegistered(
                 int row = indexOfEntryRow(entry);
                 if (row >= 0 && row < rowCount()) {
                     emit dataChanged(index(row, ColStatus), index(row, ColActions));
-                    common::Logger::error(
+                    common::Logger::info(
                         tr("[任务服务] %1 线程已停止")
                             .arg(QString::fromStdString(m_entries.back()->service->name()))
                             .toStdString());

@@ -39,6 +39,8 @@ private:
 
     cppmicroservices::BundleContext m_bundleContext;
 
+    QMenu* m_toggleMenu = nullptr;
+
     // Dock widgets
     BundleManagerDockWidget* m_bundleManagerDock = nullptr;
     TaskServiceDockWidget* m_taskServiceDock     = nullptr;

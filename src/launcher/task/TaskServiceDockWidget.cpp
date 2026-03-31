@@ -183,7 +183,7 @@ void TaskServiceDockWidget::configureTaskService(int row)
         return;
     }
 
-    TaskServiceConfigDialog dialog(entry->service->createYamlConfig(), this);
+    TaskServiceConfigDialog dialog(entry->service->createConfig(), this);
     dialog.resize(800, 600);
 
     if (dialog.exec() != QDialog::Accepted) {
@@ -224,7 +224,7 @@ TaskServiceDockWidget::buildTaskServiceConfig(int row, bool* ok) const
         return {};
     }
 
-    auto config = entry->service->createYamlConfig();
+    auto config = entry->service->createConfig();
     if (!config) {
         if (ok) {
             *ok = true;

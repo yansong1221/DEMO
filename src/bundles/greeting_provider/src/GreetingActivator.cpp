@@ -8,7 +8,6 @@
 #include <thread>
 
 #include "imgui.h"
-#include <spdlog/spdlog.h>
 
 using namespace cppmicroservices;
 
@@ -78,8 +77,7 @@ public:
         std::cout << "[TaskService] onThreadStart"
                   << " task_name=" << typedConfig->taskName
                   << " interval_ms=" << typedConfig->intervalMs
-                  << " auto_restart=" << std::boolalpha << typedConfig->autoRestart
-                  << " language=" << m_language << std::endl;
+                  << " auto_restart=" << std::boolalpha << typedConfig->autoRestart << std::endl;
         return true;
     }
 
@@ -92,7 +90,7 @@ public:
         // 模拟任务执行
         m_counter++;
         if (m_counter % 10 == 0) {
-            spdlog::info("[TaskService] running... count= {}", m_counter);
+            common::Logger::info(std::format("[TaskService] running... count= {}", m_counter));
         }
 
         // 模拟工作间隔
@@ -111,14 +109,7 @@ public:
                   << " final_count=" << m_counter << std::endl;
     }
 
-    void setLanguage(std::string const& language) override
-    {
-        if (!language.empty()) {
-            m_language = language;
-        }
-    }
-
-    std::shared_ptr<IBasicConfig> createYamlConfig() const override
+    std::shared_ptr<IBasicConfig> createConfig() const override
     {
         auto config = std::make_shared<DemoTaskConfig>();
         if (m_lastConfig) {
@@ -127,18 +118,12 @@ public:
         return config;
     }
 
-    void setLogger(std::shared_ptr<spdlog::logger> logger) override
-    {
-        spdlog::set_default_logger(logger);
-    }
-
     std::string name() const override { return "dome.task"; }
 
 private:
     bool m_running                               = false;
     int m_counter                                = 0;
     std::shared_ptr<DemoTaskConfig> m_lastConfig = std::make_shared<DemoTaskConfig>();
-    std::string m_language                       = "zh-CN";
 };
 
 void GreetingActivator::Start(BundleContext context)

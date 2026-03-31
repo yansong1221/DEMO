@@ -3,6 +3,7 @@
 #include "thread.hpp"
 
 #include "cppmicroservices/BundleContext.h"
+#include "cppmicroservices/ServiceTrackerCustomizer.h"
 #include "service/ITaskService.h"
 #include <QAbstractTableModel>
 #include <QScopedPointer>
@@ -103,10 +104,9 @@ private:
     void handleServiceModified(cppmicroservices::ServiceReferenceBase const& ref);
     int findEntryIndexByServiceReference(cppmicroservices::ServiceReferenceBase const& ref) const;
 
-    QString defaultTaskConfigYaml(std::shared_ptr<service::ITaskService> const& service) const;
-
     cppmicroservices::BundleContext m_bundleContext;
     cppmicroservices::ListenerToken m_listenerToken;
+
     std::vector<std::unique_ptr<TaskServiceEntry>> m_entries;
     QString m_lastSelectedName;
     QString m_lastSelectedBundle;

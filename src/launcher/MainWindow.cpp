@@ -16,7 +16,10 @@
 #include <cppmicroservices/logservice/LogService.hpp>
 
 #include <QCoreApplication>
+#include <QDebug>
 #include <QDir>
+#include <QMenu>
+#include <QMenuBar>
 #include <chrono>
 
 MainWindow::MainWindow(cppmicroservices::BundleContext bundleContext, QWidget* parent)
@@ -63,6 +66,10 @@ void MainWindow::setupUI()
     m_logWidget = new LogWidget(this);
 
     setPersistentCentralWidget(m_logWidget);
+
+    auto menubar = menuBar();
+    m_toggleMenu = new QMenu("Toggle", this);
+    menubar->addMenu(m_toggleMenu);
 }
 
 void MainWindow::setupLogService()
@@ -80,7 +87,8 @@ void MainWindow::setupLogService()
 
     m_bundleContext.RegisterService<cppmicroservices::logservice::LogService>(m_logServiceImpl,
                                                                               props);
-
+    m_bundleContext.RegisterService<cppmicroservices::logservice::LoggerFactory>(m_logServiceImpl,
+                                                                                 props);
     // 记录启动日志
     m_logServiceImpl->Log(cppmicroservices::logservice::SeverityLevel::LOG_INFO,
                           "LogService registered successfully");
@@ -92,6 +100,14 @@ void MainWindow::setupDockWidgets()
     m_bundleManagerDock = new BundleManagerDockWidget(m_bundleContext, this);
     addDockWidget(m_bundleManagerDock, KDDockWidgets::Location_OnLeft);
     m_bundleManagerDock->show();
+    m_toggleMenu->addAction(m_bundleManagerDock->toggleAction());
+
+    // 创建任务服务 DockWidget
+    m_taskServiceDock = new TaskServiceDockWidget(m_bundleContext, this);
+    // addDockWidget(m_taskServiceDock, KDDockWidgets::Location_OnBottom, m_bundleManagerDock);
+    m_bundleManagerDock->addDockWidgetAsTab(m_taskServiceDock);
+    m_taskServiceDock->show();
+    m_toggleMenu->addAction(m_taskServiceDock->toggleAction());
 
     // 首次启动自动加载所有 bundles
     m_bundleManagerDock->refreshBundleList();
@@ -99,11 +115,6 @@ void MainWindow::setupDockWidgets()
     for (int i = 0; i < count; ++i) {
         m_bundleManagerDock->loadBundle(i);
     }
-
-    // 创建任务服务 DockWidget
-    m_taskServiceDock = new TaskServiceDockWidget(m_bundleContext, this);
-    addDockWidget(m_taskServiceDock, KDDockWidgets::Location_OnBottom, m_bundleManagerDock);
-    m_taskServiceDock->show();
 }
 
 void MainWindow::setupServiceListener()
@@ -122,8 +133,10 @@ void MainWindow::setupServiceListener()
 
                 auto dock_W = new KDDockWidgets::QtWidgets::DockWidget(service->uniqueName());
                 dock_W->setWidget(w);
+                dock_W->setTitle(w->windowTitle());
+                m_toggleMenu->addAction(dock_W->toggleAction());
 
-                addDockWidget(dock_W, KDDockWidgets::Location_OnRight);
+                addDockWidgetAsTab(dock_W);
                 dock_W->show();
 
                 PluginState p;
@@ -138,10 +151,8 @@ void MainWindow::setupServiceListener()
                     auto dock_w                                             = m_Plugins[i].dock_w;
 
                     if (currentRef == eventRef) {
-                        if (dock_w) {
-                            dock_w->close();
-                            dock_w->deleteLater();
-                        }
+                        dock_w->setWidget(nullptr);
+                        delete dock_w;
                         m_Plugins.erase(m_Plugins.begin() + i);
                         break;
                     }
@@ -156,6 +167,13 @@ void MainWindow::closeEvent(QCloseEvent* event)
         if (bundle == m_bundleContext.GetBundle())
             continue;
         auto s = bundle.GetSymbolicName();
+        qDebug() << QString::fromStdString(s);
+    }
+    for (auto bundle : m_bundleContext.GetBundles()) {
+        if (bundle == m_bundleContext.GetBundle())
+            continue;
+        auto s = bundle.GetSymbolicName();
+        qDebug() << QString::fromStdString(s);
         bundle.Stop();
     }
     // for (auto bundle : m_bundleContext.GetBundles()) {

@@ -1,0 +1,7 @@
+{
+  "bundle.symbolic_name": "ai_agent",
+  "bundle.version": "1.0.1",
+  "bundle.activator": true,
+  "bundle.name": "Juki AOI",
+  "bundle.description": " AI task service"
+}
