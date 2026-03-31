@@ -1,0 +1,7 @@
+{
+  "bundle.symbolic_name": "task_service_manager",
+  "bundle.version": "1.0.0",
+  "bundle.activator": true,
+  "bundle.name": "Task Service Manager",
+  "bundle.description": "Manages task services through ITaskServiceManager interface"
+}
