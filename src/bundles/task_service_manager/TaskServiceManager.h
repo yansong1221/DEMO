@@ -55,11 +55,13 @@ public:
     }
     bool start(std::shared_ptr<service::ITaskService::IBasicConfig> config) override
     {
-        std::lock_guard lock(m_mutex);
         if (isRunning()) {
             return true;
         }
-        m_config = config;
+        {
+            std::lock_guard lock(m_mutex);
+            m_config = config;
+        }
         return Thread::startThread();
     }
 

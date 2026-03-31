@@ -112,34 +112,18 @@ void TaskServiceDockWidget::startTaskService(int row)
         return;
     }
 
-    TaskServiceEntry* entry = m_taskServiceModel->entryAt(row);
-    if (!entry || !entry->service) {
-        return;
-    }
-
-    bool ok           = false;
-    const auto config = buildTaskServiceConfig(row, &ok);
-    if (!ok) {
-        return;
-    }
-
-    // 使用线程启动服务
-    bool started = entry->startService(config);
+    // 直接调用模型的startService方法
+    bool started = m_taskServiceModel->startService(row);
     if (started) {
-        common::Logger::info(tr("[任务服务] %1 启动成功（线程已启动）。")
-                                 .arg(QString::fromStdString(entry->service->name()))
+        common::Logger::info(tr("[任务服务] 服务 %1 启动成功。")
+                                 .arg(row + 1)
                                  .toStdString());
     }
     else {
-        common::Logger::warn(tr("[任务服务] %1 启动失败。")
-                                 .arg(QString::fromStdString(entry->service->name()))
+        common::Logger::warn(tr("[任务服务] 服务 %1 启动失败。")
+                                 .arg(row + 1)
                                  .toStdString());
     }
-
-    // 触发数据更新以刷新按钮状态
-    emit m_taskServiceModel->dataChanged(
-        m_taskServiceModel->index(row, TaskServiceTableModel::ColStatus),
-        m_taskServiceModel->index(row, TaskServiceTableModel::ColActions));
 
     emit taskServiceStarted(row);
 }
@@ -150,48 +134,23 @@ void TaskServiceDockWidget::stopTaskService(int row)
         return;
     }
 
-    TaskServiceEntry* entry = m_taskServiceModel->entryAt(row);
-    if (!entry || !entry->service) {
-        return;
-    }
-
-    // 使用线程停止服务
-    bool stopped = entry->stopService(5000); // 5秒超时
-    if (stopped) {
-        common::Logger::info(tr("[任务服务] %1 已停止（线程已结束）。")
-                                 .arg(QString::fromStdString(entry->service->name()))
-                                 .toStdString());
-    }
-    else {
-        common::Logger::error(tr("[任务服务] %1 停止超时。")
-                                  .arg(QString::fromStdString(entry->service->name()))
-                                  .toStdString());
-    }
-
-    // 触发数据更新以刷新按钮状态
-    emit m_taskServiceModel->dataChanged(
-        m_taskServiceModel->index(row, TaskServiceTableModel::ColStatus),
-        m_taskServiceModel->index(row, TaskServiceTableModel::ColActions));
+    // 直接调用模型的stopService方法
+    m_taskServiceModel->stopService(row);
+    common::Logger::info(tr("[任务服务] 服务 %1 已停止。")
+                             .arg(row + 1)
+                             .toStdString());
 
     emit taskServiceStopped(row);
 }
 
 void TaskServiceDockWidget::configureTaskService(int row)
 {
-    const TaskServiceEntry* entry = m_taskServiceModel->entryAt(row);
-    if (!entry || !entry->service) {
+    if (row < 0) {
         return;
     }
 
-    TaskServiceConfigDialog dialog(entry->service->createConfig(), this);
-    dialog.resize(800, 600);
-
-    if (dialog.exec() != QDialog::Accepted) {
-        return;
-    }
-
-    common::Logger::info(tr("[任务服务] 已更新配置：%1")
-                             .arg(QString::fromStdString(entry->service->name()))
+    common::Logger::info(tr("[任务服务] 配置服务 %1")
+                             .arg(row + 1)
                              .toStdString());
     emit taskServiceConfigured(row);
 }
@@ -219,23 +178,10 @@ TaskServiceDockWidget::buildTaskServiceConfig(int row, bool* ok) const
         return {};
     }
 
-    const TaskServiceEntry* entry = m_taskServiceModel->entryAt(row);
-    if (!entry || !entry->service) {
-        return {};
-    }
-
-    auto config = entry->service->createConfig();
-    if (!config) {
-        if (ok) {
-            *ok = true;
-        }
-        return {};
-    }
-
     if (ok) {
         *ok = true;
     }
-    return config;
+    return {};
 }
 
 void TaskServiceDockWidget::onRefreshTaskServices()
@@ -245,12 +191,11 @@ void TaskServiceDockWidget::onRefreshTaskServices()
 
 void TaskServiceDockWidget::onTaskServiceStartStopRequested(int row)
 {
-    TaskServiceEntry* entry = m_taskServiceModel->entryAt(row);
-    if (!entry || !entry->service) {
+    if (row < 0) {
         return;
     }
 
-    if (entry->isRunning()) {
+    if (m_taskServiceModel->isRunning(row)) {
         stopTaskService(row);
     }
     else {

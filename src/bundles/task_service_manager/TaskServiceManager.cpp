@@ -70,9 +70,10 @@ void TaskServiceManager::RemovedService(
     if (it == m_services.end())
         return;
 
+    (*it)->stop();
+
     if (m_controllerEventCallback)
         m_controllerEventCallback(*it, ControllerEvent::Unregistered);
 
-    (*it)->stop();
     m_services.erase(it);
 }
