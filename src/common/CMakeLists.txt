@@ -1,5 +1,5 @@
-# src/common/CMakeLists.txt
-# 公共组件库
+
+set(MODULE common)
 
 find_package(CppMicroServices REQUIRED)
 find_package(Boost REQUIRED COMPONENTS beast CONFIG)
@@ -14,14 +14,18 @@ ${CMAKE_CURRENT_SOURCE_DIR}/*.json
 ${CMAKE_CURRENT_SOURCE_DIR}/*.rc)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${MODULE_SOURCES})
 
-add_library(common STATIC ${MODULE_SOURCES})
+add_library(${MODULE} STATIC ${MODULE_SOURCES})
 
-target_include_directories(common PUBLIC 
+target_include_directories(${MODULE} PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(common PUBLIC 
+target_link_libraries(${MODULE} PUBLIC 
     CppMicroServices
     usLogService
     Boost::beast
 )
+
+if(MSVC)
+    target_compile_options(${MODULE} PRIVATE /utf-8)
+endif()

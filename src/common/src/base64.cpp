@@ -4,24 +4,31 @@
 namespace common::base64 {
 std::string encode(std::span<const uint8_t> binary_data)
 {
-    std::span<const uint8_t> sp(binary_data.data(), binary_data.size());
-    return encode(sp);
+    std::string _encode_content;
+    _encode_content.resize(boost::beast::detail::base64::encoded_size(binary_data.size()));
+    boost::beast::detail::base64::encode(
+        &_encode_content[0], binary_data.data(), binary_data.size());
+    return _encode_content;
 }
 
 std::string encode(std::string_view binary_data)
 {
-    std::string base64;
-    base64.resize(boost::beast::detail::base64::encoded_size(binary_data.size()));
-    boost::beast::detail::base64::encode(&base64[0], binary_data.data(), binary_data.size());
-    return std::move(base64);
+    std::span<const uint8_t> sp((const uint8_t*)binary_data.data(), binary_data.size());
+    return encode(sp);
+}
+
+std::string encode(const std::vector<uint8_t>& binary_data)
+{
+    std::span<const uint8_t> sp(binary_data.data(), binary_data.size());
+    return encode(sp);
 }
 
 std::string decode(std::string_view data)
 {
-    std::string base64;
-    base64.resize(boost::beast::detail::base64::decoded_size(data.size()));
-    boost::beast::detail::base64::decode(base64.data(), data.data(), data.size());
-    return std::move(base64);
+    std::string _decode_content;
+    _decode_content.resize(boost::beast::detail::base64::decoded_size(data.size()));
+    boost::beast::detail::base64::decode(_decode_content.data(), data.data(), data.size());
+    return _decode_content;
 }
 
 } // namespace common::base64
