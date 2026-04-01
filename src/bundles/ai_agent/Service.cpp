@@ -69,7 +69,7 @@ Service::detect(std::shared_ptr<service::IAIAgentService::IDetectPanel> panel)
     // 暂时空实现
 }
 boost::asio::awaitable<void>
-Service::co_detect(std::shared_ptr<IDetectPanel> panel)
+Service::coroDetect(std::shared_ptr<IDetectPanel> panel)
 {
     co_return;
 }

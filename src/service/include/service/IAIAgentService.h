@@ -112,6 +112,6 @@ namespace service
 
         virtual std::shared_ptr<IDetectPanel> createDetectPanel() const = 0;
         virtual void detect(std::shared_ptr<IDetectPanel> panel) = 0;
-        virtual boost::asio::awaitable<void> co_detect(std::shared_ptr<IDetectPanel> panel) = 0;
+        virtual boost::asio::awaitable<void> coroDetect(std::shared_ptr<IDetectPanel> panel) = 0;
     };
 } // namespace service

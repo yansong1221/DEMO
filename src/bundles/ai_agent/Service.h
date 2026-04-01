@@ -31,7 +31,7 @@ class Service
     // IAIAgentService 接口实现
     std::shared_ptr<IDetectPanel> createDetectPanel() const override;
     void detect(std::shared_ptr<IDetectPanel> panel) override;
-    boost::asio::awaitable<void> co_detect(std::shared_ptr<IDetectPanel> panel) override;
+    boost::asio::awaitable<void> coroDetect(std::shared_ptr<IDetectPanel> panel) override;
 
   private:
     std::shared_ptr<Config> selfConfig_;
