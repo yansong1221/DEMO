@@ -8,6 +8,7 @@
 #include <cppmicroservices/BundleEvent.h>
 #include <cppmicroservices/ListenerToken.h>
 #include <vector>
+#include <QFileInfo>
 
 struct PluginBundleRow
 {
@@ -21,6 +22,9 @@ struct PluginBundleRow
     QString hostState;
     bool actionStartEnabled = true;
     bool actionStopEnabled  = false;
+
+    cppmicroservices::Bundle bundle;
+    QFileInfo fileInfo;
 };
 
 struct HostRowState
@@ -66,13 +70,12 @@ public:
 
     void refreshAllHostStates();
 
-    bool attachBundleListener();
-    void detachBundleListener();
-
-    void rescanPluginDirectory(QString const& root);
+    void rescanPluginDirectory(QStringList const& dirs);
     void installBundlesFromFiles(QStringList const& absolutePaths);
     void startBundleRow(int row);
     void stopBundleRow(int row);
+
+    void stopAllBundles();
 
 private:
     QString bundleStateLabel(cppmicroservices::Bundle::State state) const;

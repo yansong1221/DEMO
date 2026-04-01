@@ -25,31 +25,28 @@ std::string toUtf8StdString(QString const& value)
 }
 
 // 获取默认插件目录（应用程序目录下的 bundles 文件夹）
-QString getDefaultPluginDir()
+QStringList getDefaultPluginDir()
 {
-    return QCoreApplication::applicationDirPath() + "/bundles";
+    QStringList dirs;
+    dirs << QCoreApplication::applicationDirPath() + "/bundles";
+    return dirs;
 }
 
 } // namespace
 
-BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::BundleContext const& bundleContext,
-                                                 QWidget* parent)
+BundleManagerDockWidget::BundleManagerDockWidget(
+    cppmicroservices::BundleContext const& bundleContext, QWidget* parent)
     : KDDockWidgets::QtWidgets::DockWidget(QStringLiteral("BundleManager"))
     , m_bundleContext(bundleContext)
 {
     Q_UNUSED(parent)
     setupUI();
     setupConnections();
-
-    // 启动监听器
-    if (!m_bundleModel->attachBundleListener()) {
-        common::Logger::info(tr("[监听] 在模型中注册 Bundle 监听器失败。").toStdString());
-    }
 }
 
 BundleManagerDockWidget::~BundleManagerDockWidget()
 {
-    m_bundleModel->detachBundleListener();
+    
 }
 
 void BundleManagerDockWidget::setupUI()
@@ -137,6 +134,11 @@ void BundleManagerDockWidget::unloadBundle(int row)
 int BundleManagerDockWidget::bundleCount() const
 {
     return m_bundleModel->rowCount();
+}
+
+void BundleManagerDockWidget::stopAllBundles()
+{
+    m_bundleModel->stopAllBundles();
 }
 
 void BundleManagerDockWidget::onRefreshBundleList()

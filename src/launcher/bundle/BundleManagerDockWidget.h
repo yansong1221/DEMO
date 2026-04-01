@@ -31,6 +31,7 @@ public:
     void unloadBundle(int row);
     int bundleCount() const;
 
+    void stopAllBundles();
 signals:
     void bundleLoaded(int row);
     void bundleUnloaded(int row);

@@ -20,11 +20,3 @@ FetchContent_MakeAvailable(CppMicroServices)
 
 # 恢复 FOLDER 设置
 set(CMAKE_FOLDER "")
-
-# 强制设置 CppMicroServices 主目标的 C++ 标准
-if(TARGET cppmicroservices)
-    set_target_properties(cppmicroservices PROPERTIES 
-        CXX_STANDARD 23 
-        CXX_STANDARD_REQUIRED ON
-    )
-endif()

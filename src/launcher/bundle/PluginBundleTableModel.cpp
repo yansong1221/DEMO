@@ -108,11 +108,24 @@ PluginBundleTableModel::PluginBundleTableModel(cppmicroservices::BundleContext b
     : QAbstractTableModel(parent)
     , m_hostContext(bundleContext)
 {
+    m_bundleListenerToken = m_hostContext.AddBundleListener([this](BundleEvent const& evt) {
+        if (!evt) {
+            return;
+        }
+        const BundleEvent ev = evt;
+        QMetaObject::invokeMethod(this, [this, ev]() { applyBundleEvent(ev); });
+    });
 }
 
 PluginBundleTableModel::~PluginBundleTableModel()
 {
-    detachBundleListener();
+    if (m_bundleListenerToken && m_hostContext) {
+        try {
+            m_hostContext.RemoveListener(std::move(m_bundleListenerToken));
+        }
+        catch (...) {
+        }
+    }
 }
 
 QString PluginBundleTableModel::bundleStateLabel(Bundle::State state) const
@@ -153,38 +166,6 @@ HostRowState PluginBundleTableModel::resolveHostRowState(QString const& absPath,
     }
     catch (...) {
         return {tr("?"), false, false};
-    }
-}
-
-bool PluginBundleTableModel::attachBundleListener()
-{
-    detachBundleListener();
-    if (!m_hostContext) {
-        return false;
-    }
-    try {
-        m_bundleListenerToken = m_hostContext.AddBundleListener([this](BundleEvent const& evt) {
-            if (!evt) {
-                return;
-            }
-            const BundleEvent ev = evt;
-            QMetaObject::invokeMethod(this, [this, ev]() { applyBundleEvent(ev); });
-        });
-        return static_cast<bool>(m_bundleListenerToken);
-    }
-    catch (...) {
-        return false;
-    }
-}
-
-void PluginBundleTableModel::detachBundleListener()
-{
-    if (m_bundleListenerToken && m_hostContext) {
-        try {
-            m_hostContext.RemoveListener(std::move(m_bundleListenerToken));
-        }
-        catch (...) {
-        }
     }
 }
 
@@ -247,8 +228,7 @@ void PluginBundleTableModel::refreshHostStateAtRow(int row)
     rowRef.hostState          = next.label;
     rowRef.actionStartEnabled = next.startEnabled;
     rowRef.actionStopEnabled  = next.stopEnabled;
-    emit dataChanged(
-        index(row, ColHostState), index(row, ColActions), {Qt::DisplayRole, Qt::UserRole});
+    emit dataChanged(index(row, ColFile), index(row, ColActions), {Qt::DisplayRole, Qt::UserRole});
 }
 
 void PluginBundleTableModel::ensureServiceTimeStartedIfPresent()
@@ -317,22 +297,26 @@ void PluginBundleTableModel::refreshAllHostStates()
     }
 }
 
-void PluginBundleTableModel::rescanPluginDirectory(QString const& root)
+void PluginBundleTableModel::rescanPluginDirectory(QStringList const& dirs)
 {
-    const QString trimmed = root.trimmed();
-    if (trimmed.isEmpty() || !QDir(trimmed).exists()) {
-        common::Logger::error(tr("[列表] 插件目录无效。").toStdString());
-        return;
-    }
-
-    QDir dir(trimmed);
 #ifdef _WIN32
     const QStringList filters {QStringLiteral("*.dll")};
 #else
     const QStringList filters {QStringLiteral("*.so")};
 #endif
-    const QFileInfoList files =
-        dir.entryInfoList(filters, QDir::Files | QDir::Readable, QDir::Name);
+    QFileInfoList files;
+
+    for (const auto& _dir : dirs) {
+        const QString trimmed = _dir.trimmed();
+        if (trimmed.isEmpty() || !QDir(trimmed).exists()) {
+            common::Logger::error(tr("[列表] 插件目录无效。").toStdString());
+            continue;
+        }
+        QDir dir(trimmed);
+        const QFileInfoList found =
+            dir.entryInfoList(filters, QDir::Files | QDir::Readable, QDir::Name);
+        files.append(found);
+    }
     if (files.isEmpty()) {
         setRows({});
         common::Logger::error(tr("[列表] 目录中未找到插件文件。").toStdString());
@@ -461,6 +445,7 @@ void PluginBundleTableModel::startBundleRow(int row)
         if (sym != kServiceTimeSymbolic) {
             ensureServiceTimeStartedIfPresent();
         }
+        auto s = b.GetSymbolicName();
         b.Start();
         common::Logger::info(
             tr("[启动] 已请求启动：%1").arg(QString::fromUtf8(sym.c_str())).toStdString());
@@ -507,6 +492,14 @@ void PluginBundleTableModel::stopBundleRow(int row)
             QString::fromUtf8("[停止] 失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
     refreshAllHostStates();
+}
+
+void PluginBundleTableModel::stopAllBundles()
+{
+    return;
+    for (int i = 0; i < rowCount(); ++i) {
+        stopBundleRow(i);
+    }
 }
 
 int PluginBundleTableModel::rowCount(const QModelIndex& parent) const

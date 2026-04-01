@@ -281,7 +281,7 @@ void LogServiceImpl::initSpdlog()
         dir.mkpath(".");
     }
     try {
-        auto file_name_pattern = std::format("{}\\%Y-%m-%d.log", logDir.toStdString());
+        auto file_name_pattern = fmt::format("{}\\%Y-%m-%d.log", logDir.toStdString());
 
         auto file_sink = std::make_shared<spdlog::sinks::daily_file_format_sink_mt>(
             file_name_pattern, 0, 0, false, 30);

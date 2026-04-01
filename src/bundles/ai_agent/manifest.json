@@ -3,5 +3,6 @@
   "bundle.version": "1.0.1",
   "bundle.activator": true,
   "bundle.name": "Juki AOI",
-  "bundle.description": " AI task service"
+  "bundle.description": " AI task service",
+  "dynamic_uninstall":true
 }

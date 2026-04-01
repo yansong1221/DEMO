@@ -10,17 +10,18 @@
 #include <cppmicroservices/ServiceReference.h>
 #include <memory>
 
+#include "cppmicroservices/ServiceTracker.h"
+#include "cppmicroservices/ServiceTrackerCustomizer.h"
 #include <service/ITaskService.h>
 #include <service/IWidgetService.h>
-
-using service::IWidgetService;
 
 class BundleManagerDockWidget;
 class TaskServiceDockWidget;
 class LogWidget;
 class LogServiceImpl;
 
-class MainWindow : public KDDockWidgets::QtWidgets::MainWindow
+class MainWindow : public KDDockWidgets::QtWidgets::MainWindow,
+                   public cppmicroservices::ServiceTrackerCustomizer<service::IWidgetService>
 {
     Q_OBJECT
 
@@ -31,13 +32,25 @@ public:
 protected:
     void closeEvent(QCloseEvent* event) override;
 
+protected:
+    std::shared_ptr<service::IWidgetService> AddingService(
+        cppmicroservices::ServiceReference<service::IWidgetService> const& reference) override;
+
+    void
+    ModifiedService(cppmicroservices::ServiceReference<service::IWidgetService> const& reference,
+                    std::shared_ptr<service::IWidgetService> const& service) override;
+
+    void
+    RemovedService(cppmicroservices::ServiceReference<service::IWidgetService> const& reference,
+                   std::shared_ptr<service::IWidgetService> const& service) override;
+
 private:
     void setupUI();
     void setupDockWidgets();
-    void setupServiceListener();
     void setupLogService();
 
     cppmicroservices::BundleContext m_bundleContext;
+    cppmicroservices::ServiceTracker<service::IWidgetService> m_Tracker;
 
     QMenu* m_toggleMenu = nullptr;
 
@@ -53,10 +66,10 @@ private:
 
     struct PluginState
     {
-        cppmicroservices::ServiceReference<IWidgetService> ref;
-        std::shared_ptr<IWidgetService> service;
+        cppmicroservices::ServiceReference<service::IWidgetService> ref;
+        std::shared_ptr<service::IWidgetService> service;
         KDDockWidgets::QtWidgets::DockWidget* dock_w = nullptr;
     };
     std::vector<PluginState> m_Plugins;
-    cppmicroservices::ListenerToken m_ListenerToken;
+    std::vector<cppmicroservices::Bundle> m_Bundles;
 };

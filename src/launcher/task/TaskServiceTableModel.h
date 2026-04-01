@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cppmicroservices/BundleContext.h"
+#include "cppmicroservices/ServiceTracker.h"
 #include "service/ITaskService.h"
 #include "service/ITaskServiceManager.h"
 #include <QAbstractTableModel>
@@ -13,7 +14,9 @@ namespace cppmicroservices {
 class BundleContext;
 }
 
-class TaskServiceTableModel : public QAbstractTableModel
+class TaskServiceTableModel
+    : public QAbstractTableModel,
+      public cppmicroservices::ServiceTrackerCustomizer<service::ITaskServiceManager>
 {
     Q_OBJECT
 
@@ -48,15 +51,32 @@ public:
     bool startService(int row);
     void stopService(int row);
 
+protected:
+    std::shared_ptr<service::ITaskServiceManager> AddingService(
+        cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference) override;
+
+    void ModifiedService(
+        cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference,
+        std::shared_ptr<service::ITaskServiceManager> const& service) override;
+
+    void RemovedService(
+        cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference,
+        std::shared_ptr<service::ITaskServiceManager> const& service) override;
+
 private:
-    void onControllerEvent(std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller,
-                          service::ITaskServiceManager::ControllerEvent event);
-    void onStatusChanged(int index, service::ITaskServiceManager::ITaskServiceController::TaskServiceStatus status);
+    void onControllerEvent(
+        std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller,
+        service::ITaskServiceManager::ControllerEvent event);
+    void onStatusChanged(
+        int index, service::ITaskServiceManager::ITaskServiceController::TaskServiceStatus status);
     void refreshControllers();
 
     cppmicroservices::BundleContext m_bundleContext;
+    cppmicroservices::ServiceTracker<service::ITaskServiceManager> m_Tracker;
+
     std::shared_ptr<service::ITaskServiceManager> m_taskServiceManager;
-    std::vector<std::shared_ptr<service::ITaskServiceManager::ITaskServiceController>> m_controllers;
+    std::vector<std::shared_ptr<service::ITaskServiceManager::ITaskServiceController>>
+        m_controllers;
     QString m_lastSelectedName;
     QString m_lastSelectedBundle;
 };

@@ -24,7 +24,7 @@ set(CMAKE_FOLDER "")
 # 强制设置 KDDockWidgets 主目标的 C++ 标准
 if(TARGET kddockwidgets)
     set_target_properties(kddockwidgets PROPERTIES 
-        CXX_STANDARD 23 
+        CXX_STANDARD 20 
         CXX_STANDARD_REQUIRED ON
     )
 endif()

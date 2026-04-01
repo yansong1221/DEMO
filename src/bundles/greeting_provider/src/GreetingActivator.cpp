@@ -120,6 +120,12 @@ public:
 
     std::string name() const override { return "dome.task"; }
 
+
+ void requestStop() override
+    {
+        throw std::logic_error("The method or operation is not implemented.");
+    }
+
 private:
     bool m_running                               = false;
     int m_counter                                = 0;

@@ -26,24 +26,14 @@ TaskServiceTableModel::TaskServiceTableModel(cppmicroservices::BundleContext bun
                                              QObject* parent)
     : QAbstractTableModel(parent)
     , m_bundleContext(bundleContext)
+    , m_Tracker(bundleContext, this)
 {
-    // 获取TaskServiceManager服务
-    try {
-        auto refs = m_bundleContext.GetServiceReferences<service::ITaskServiceManager>();
-        if (!refs.empty()) {
-            m_taskServiceManager = m_bundleContext.GetService(refs.front());
-            attachListener();
-        }
-    }
-    catch (const std::exception& e) {
-        common::Logger::error(tr("[任务服务] 获取任务服务管理器失败：%1")
-                                  .arg(QString::fromUtf8(e.what()))
-                                  .toStdString());
-    }
+    m_Tracker.Open();
 }
 
 TaskServiceTableModel::~TaskServiceTableModel()
 {
+    m_Tracker.Close();
     detachListener();
 }
 
@@ -117,26 +107,6 @@ QVariant TaskServiceTableModel::headerData(int section, Qt::Orientation orientat
 
 void TaskServiceTableModel::refresh()
 {
-    if (!m_taskServiceManager) {
-        common::Logger::error(tr("[任务服务] 任务服务管理器未初始化").toStdString());
-
-        // 获取TaskServiceManager服务
-        try {
-            auto refs = m_bundleContext.GetServiceReferences<service::ITaskServiceManager>();
-            if (!refs.empty()) {
-                m_taskServiceManager = m_bundleContext.GetService(refs.front());
-                attachListener();
-            }
-        }
-        catch (const std::exception& e) {
-            common::Logger::error(tr("[任务服务] 获取任务服务管理器失败：%1")
-                                      .arg(QString::fromUtf8(e.what()))
-                                      .toStdString());
-        }
-    }
-    if (!m_taskServiceManager)
-        return;
-
     beginResetModel();
     m_controllers.clear();
     refreshControllers();
@@ -345,5 +315,48 @@ void TaskServiceTableModel::stopService(int row)
     catch (const std::exception& e) {
         common::Logger::error(
             tr("[任务服务] 停止服务失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
+    }
+}
+
+std::shared_ptr<service::ITaskServiceManager> TaskServiceTableModel::AddingService(
+    cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference)
+{
+    if (m_taskServiceManager)
+        return nullptr;
+
+    try {
+        auto ser = m_bundleContext.GetService(reference);
+        if (ser) {
+            m_taskServiceManager = ser;
+
+            beginResetModel();
+            m_controllers = m_taskServiceManager->listTaskControllers();
+            endResetModel();
+
+            attachListener();
+            return m_taskServiceManager;
+        }
+    }
+    catch (const std::exception& e) {
+        common::Logger::error(tr("[任务服务] 获取任务服务管理器失败：%1")
+                                  .arg(QString::fromUtf8(e.what()))
+                                  .toStdString());
+    }
+    return nullptr;
+}
+
+void TaskServiceTableModel::ModifiedService(
+    cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference,
+    std::shared_ptr<service::ITaskServiceManager> const& service)
+{
+}
+
+void TaskServiceTableModel::RemovedService(
+    cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference,
+    std::shared_ptr<service::ITaskServiceManager> const& service)
+{
+    if (m_taskServiceManager == service) {
+        m_taskServiceManager.reset();
+        refresh();
     }
 }

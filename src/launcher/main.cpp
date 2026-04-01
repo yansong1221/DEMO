@@ -19,6 +19,9 @@ int main(int argc, char** argv)
     cppmicroservices::FrameworkFactory factory;
     auto framework = factory.NewFramework();
     framework.Init();
+
+
+
     framework.Start();
 
     MainWindow w(framework.GetBundleContext());
