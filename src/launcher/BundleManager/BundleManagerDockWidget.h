@@ -13,17 +13,17 @@ QT_END_NAMESPACE
 
 class PluginBundleActionDelegate;
 
-namespace cppmicroservices {
-class BundleContext;
+namespace cppmicroservices
+{
+    class BundleContext;
 }
 
 class BundleManagerDockWidget : public KDDockWidgets::QtWidgets::DockWidget
 {
     Q_OBJECT
 
-public:
-    explicit BundleManagerDockWidget(cppmicroservices::BundleContext const& bundleContext,
-                                     QWidget* parent = nullptr);
+  public:
+    explicit BundleManagerDockWidget(cppmicroservices::BundleContext const& bundleContext, QWidget* parent = nullptr);
     ~BundleManagerDockWidget() override;
 
     void refreshBundleList();
@@ -32,17 +32,17 @@ public:
     int bundleCount() const;
 
     void stopAllBundles();
-signals:
+  signals:
     void bundleLoaded(int row);
     void bundleUnloaded(int row);
 
-private slots:
+  private slots:
     void onRefreshBundleList();
     void onLoadBundleRow(int row);
     void onUnloadBundleRow(int row);
     void onBundleTableSelectionChanged();
 
-private:
+  private:
     void setupUI();
     void setupConnections();
 
@@ -50,9 +50,9 @@ private:
 
     // UI elements
     QPushButton* m_refreshListBtn = nullptr;
-    QTableView* m_bundleView      = nullptr;
+    QTableView* m_bundleView = nullptr;
 
     // Model and delegate
-    PluginBundleTableModel* m_bundleModel        = nullptr;
+    PluginBundleTableModel* m_bundleModel = nullptr;
     PluginBundleActionDelegate* m_actionDelegate = nullptr;
 };

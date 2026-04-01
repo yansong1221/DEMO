@@ -1,28 +1,27 @@
 #pragma once
-#include "imgui/QImguiWidget.h"
+#include "imgui/ImguiWidget.h"
 #include "service/ITaskService.h"
 #include <QDialog>
 
-class TaskServiceConfigWidget : public QImguiWidget
+class TaskServiceConfigWidget : public ImguiWidget
 {
     Q_OBJECT
-public:
+  public:
     explicit TaskServiceConfigWidget(std::shared_ptr<service::ITaskService::IBasicConfig> config,
                                      QWidget* parent = nullptr);
     ~TaskServiceConfigWidget();
 
-protected:
+  protected:
     void drawImgui() override;
 
-private:
+  private:
     std::shared_ptr<service::ITaskService::IBasicConfig> config_;
 };
-
 
 class TaskServiceConfigDialog : public QDialog
 {
     Q_OBJECT
-public:
+  public:
     explicit TaskServiceConfigDialog(std::shared_ptr<service::ITaskService::IBasicConfig> config,
                                      QWidget* parent = nullptr);
 };

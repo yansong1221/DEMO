@@ -20,31 +20,30 @@ class TaskServiceDockWidget;
 class LogWidget;
 class LogServiceImpl;
 
-class MainWindow : public KDDockWidgets::QtWidgets::MainWindow,
-                   public cppmicroservices::ServiceTrackerCustomizer<service::IWidgetService>
+class MainWindow
+    : public KDDockWidgets::QtWidgets::MainWindow
+    , public cppmicroservices::ServiceTrackerCustomizer<service::IWidgetService>
 {
     Q_OBJECT
 
-public:
+  public:
     explicit MainWindow(cppmicroservices::BundleContext bundleContext, QWidget* parent = nullptr);
     ~MainWindow() override;
 
-protected:
+  protected:
     void closeEvent(QCloseEvent* event) override;
 
-protected:
+  protected:
     std::shared_ptr<service::IWidgetService> AddingService(
         cppmicroservices::ServiceReference<service::IWidgetService> const& reference) override;
 
-    void
-    ModifiedService(cppmicroservices::ServiceReference<service::IWidgetService> const& reference,
-                    std::shared_ptr<service::IWidgetService> const& service) override;
+    void ModifiedService(cppmicroservices::ServiceReference<service::IWidgetService> const& reference,
+                         std::shared_ptr<service::IWidgetService> const& service) override;
 
-    void
-    RemovedService(cppmicroservices::ServiceReference<service::IWidgetService> const& reference,
-                   std::shared_ptr<service::IWidgetService> const& service) override;
+    void RemovedService(cppmicroservices::ServiceReference<service::IWidgetService> const& reference,
+                        std::shared_ptr<service::IWidgetService> const& service) override;
 
-private:
+  private:
     void setupUI();
     void setupDockWidgets();
     void setupLogService();
@@ -56,7 +55,7 @@ private:
 
     // Dock widgets
     BundleManagerDockWidget* m_bundleManagerDock = nullptr;
-    TaskServiceDockWidget* m_taskServiceDock     = nullptr;
+    TaskServiceDockWidget* m_taskServiceDock = nullptr;
 
     // Log widget (persistent central widget)
     LogWidget* m_logWidget = nullptr;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QWidget>
 #include <QTextCharFormat>
+#include <QWidget>
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -28,42 +28,42 @@ class LogWidget : public QWidget
 {
     Q_OBJECT
 
-public:
+  public:
     explicit LogWidget(QWidget* parent = nullptr);
     ~LogWidget() override;
 
     // 添加日志条目
-    void addLog(int level, const QString& bundleName, const QString& message);
-    
+    void addLog(int level, QString const& bundleName, QString const& message);
+
     // 清空日志
     void clearLog();
-    
+
     // 获取日志内容（用于导出）
     QString getAllLogText() const;
-    
+
     // 设置最大日志行数
     void setMaxLogLines(int maxLines);
 
-signals:
-    void logEntryAdded(const LogEntry& entry);
+  signals:
+    void logEntryAdded(LogEntry const& entry);
 
-private slots:
-    void onSearchTextChanged(const QString& text);
+  private slots:
+    void onSearchTextChanged(QString const& text);
     void onSearchNext();
     void onSearchPrevious();
     void onClearLog();
     void onFilterChanged();
     void onAutoScrollToggled(bool checked);
 
-private:
+  private:
     void setupUI();
     void setupConnections();
-    void appendToDisplay(const LogEntry& entry);
+    void appendToDisplay(LogEntry const& entry);
     void refreshDisplay();
     QTextCharFormat getFormatForLevel(int level) const;
     QString levelToString(int level) const;
     QColor levelToColor(int level) const;
-    bool entryMatchesFilter(const LogEntry& entry) const;
+    bool entryMatchesFilter(LogEntry const& entry) const;
     void highlightSearchResults();
 
     // UI elements
@@ -85,7 +85,7 @@ private:
     int m_maxLogLines = 10000;
     int m_currentSearchIndex = -1;
     QString m_currentSearchText;
-    
+
     // Format cache
     QTextCharFormat m_errorFormat;
     QTextCharFormat m_warningFormat;

@@ -8,37 +8,39 @@
 
 using namespace cppmicroservices;
 
-namespace task_service_manager {
-
-
-class TaskServiceManagerActivator : public BundleActivator
+namespace task_service_manager
 {
-public:
-    void Start(BundleContext context) override
+
+    class TaskServiceManagerActivator : public BundleActivator
     {
-        common::Logger::init(context);
+      public:
+        void
+        Start(BundleContext context) override
+        {
+            common::Log::init(context);
 
-        m_manager = std::make_shared<TaskServiceManager>(context);
-        ServiceProperties props;
-        props["service.description"] = std::string("TaskServiceManager bundle service");
-        m_registration = context.RegisterService<service::ITaskServiceManager>(m_manager, props);
-        common::Logger::info("TaskServiceManager started and service registered.");
-    }
+            m_manager = std::make_shared<TaskServiceManager>(context);
+            ServiceProperties props;
+            props["service.description"] = std::string("TaskServiceManager bundle service");
+            m_registration = context.RegisterService<service::ITaskServiceManager>(m_manager, props);
+            common::Log::info("TaskServiceManager started and service registered.");
+        }
 
-    void Stop(BundleContext) override
-    {
-        common::Logger::info("TaskServiceManager stopped.");
+        void
+        Stop(BundleContext) override
+        {
+            common::Log::info("TaskServiceManager stopped.");
 
-        m_registration.Unregister();
-        m_manager.reset();
+            m_registration.Unregister();
+            m_manager.reset();
 
-        common::Logger::reset();
-    }
+            common::Log::reset();
+        }
 
-private:
-    std::shared_ptr<TaskServiceManager> m_manager;
-    ServiceRegistration<service::ITaskServiceManager> m_registration;
-};
+      private:
+        std::shared_ptr<TaskServiceManager> m_manager;
+        ServiceRegistration<service::ITaskServiceManager> m_registration;
+    };
 
 } // namespace task_service_manager
 

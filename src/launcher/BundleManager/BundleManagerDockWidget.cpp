@@ -16,26 +16,28 @@
 #include "common/Logger.h"
 #include <cppmicroservices/BundleContext.h>
 
-namespace {
-
-std::string toUtf8StdString(QString const& value)
+namespace
 {
-    const QByteArray utf8 = value.toUtf8();
-    return std::string(utf8.constData(), static_cast<size_t>(utf8.size()));
-}
 
-// 获取默认插件目录（应用程序目录下的 bundles 文件夹）
-QStringList getDefaultPluginDir()
-{
-    QStringList dirs;
-    dirs << QCoreApplication::applicationDirPath() + "/bundles";
-    return dirs;
-}
+    std::string
+    toUtf8StdString(QString const& value)
+    {
+        QByteArray const utf8 = value.toUtf8();
+        return std::string(utf8.constData(), static_cast<size_t>(utf8.size()));
+    }
+
+    // 获取默认插件目录（应用程序目录下的 bundles 文件夹）
+    QStringList
+    getDefaultPluginDir()
+    {
+        QStringList dirs;
+        dirs << QCoreApplication::applicationDirPath() + "/bundles";
+        return dirs;
+    }
 
 } // namespace
 
-BundleManagerDockWidget::BundleManagerDockWidget(
-    cppmicroservices::BundleContext const& bundleContext, QWidget* parent)
+BundleManagerDockWidget::BundleManagerDockWidget(cppmicroservices::BundleContext const& bundleContext, QWidget* parent)
     : KDDockWidgets::QtWidgets::DockWidget(QStringLiteral("BundleManager"))
     , m_bundleContext(bundleContext)
 {
@@ -44,15 +46,13 @@ BundleManagerDockWidget::BundleManagerDockWidget(
     setupConnections();
 }
 
-BundleManagerDockWidget::~BundleManagerDockWidget()
-{
-    
-}
+BundleManagerDockWidget::~BundleManagerDockWidget() {}
 
-void BundleManagerDockWidget::setupUI()
+void
+BundleManagerDockWidget::setupUI()
 {
     auto* centralWidget = new QWidget(this);
-    auto* mainLayout    = new QVBoxLayout(centralWidget);
+    auto* mainLayout = new QVBoxLayout(centralWidget);
     mainLayout->setContentsMargins(4, 4, 4, 4);
     mainLayout->setSpacing(4);
 
@@ -81,8 +81,7 @@ void BundleManagerDockWidget::setupUI()
     m_bundleView->horizontalHeader()->setStretchLastSection(false);
     m_bundleView->horizontalHeader()->setSectionResizeMode(PluginBundleTableModel::ColDescription,
                                                            QHeaderView::Stretch);
-    m_bundleView->horizontalHeader()->setSectionResizeMode(PluginBundleTableModel::ColActions,
-                                                           QHeaderView::Fixed);
+    m_bundleView->horizontalHeader()->setSectionResizeMode(PluginBundleTableModel::ColActions, QHeaderView::Fixed);
     m_bundleView->setColumnWidth(PluginBundleTableModel::ColActions, 90);
 
     m_actionDelegate = new PluginBundleActionDelegate(m_bundleView);
@@ -94,12 +93,10 @@ void BundleManagerDockWidget::setupUI()
     setTitle(tr("Bundle 管理"));
 }
 
-void BundleManagerDockWidget::setupConnections()
+void
+BundleManagerDockWidget::setupConnections()
 {
-    connect(m_refreshListBtn,
-            &QPushButton::clicked,
-            this,
-            &BundleManagerDockWidget::onRefreshBundleList);
+    connect(m_refreshListBtn, &QPushButton::clicked, this, &BundleManagerDockWidget::onRefreshBundleList);
     connect(m_bundleView->selectionModel(),
             &QItemSelectionModel::currentRowChanged,
             this,
@@ -114,70 +111,79 @@ void BundleManagerDockWidget::setupConnections()
             &BundleManagerDockWidget::onUnloadBundleRow);
 }
 
-void BundleManagerDockWidget::refreshBundleList()
+void
+BundleManagerDockWidget::refreshBundleList()
 {
     m_bundleModel->rescanPluginDirectory(getDefaultPluginDir());
 }
 
-void BundleManagerDockWidget::loadBundle(int row)
+void
+BundleManagerDockWidget::loadBundle(int row)
 {
     m_bundleModel->startBundleRow(row);
     emit bundleLoaded(row);
 }
 
-void BundleManagerDockWidget::unloadBundle(int row)
+void
+BundleManagerDockWidget::unloadBundle(int row)
 {
     m_bundleModel->stopBundleRow(row);
     emit bundleUnloaded(row);
 }
 
-int BundleManagerDockWidget::bundleCount() const
+int
+BundleManagerDockWidget::bundleCount() const
 {
     return m_bundleModel->rowCount();
 }
 
-void BundleManagerDockWidget::stopAllBundles()
+void
+BundleManagerDockWidget::stopAllBundles()
 {
     m_bundleModel->stopAllBundles();
 }
 
-void BundleManagerDockWidget::onRefreshBundleList()
+void
+BundleManagerDockWidget::onRefreshBundleList()
 {
     refreshBundleList();
 }
 
-void BundleManagerDockWidget::onLoadBundleRow(int row)
+void
+BundleManagerDockWidget::onLoadBundleRow(int row)
 {
     loadBundle(row);
 }
 
-void BundleManagerDockWidget::onUnloadBundleRow(int row)
+void
+BundleManagerDockWidget::onUnloadBundleRow(int row)
 {
-    const QString symbolicName = m_bundleModel->symbolicNameAtRow(row);
-    const QString absPath      = m_bundleModel->absPathAtRow(row);
-    const QString bundleName =
-        symbolicName.isEmpty() ? QFileInfo(absPath).fileName() : symbolicName;
+    QString const symbolicName = m_bundleModel->symbolicNameAtRow(row);
+    QString const absPath = m_bundleModel->absPathAtRow(row);
+    QString const bundleName = symbolicName.isEmpty() ? QFileInfo(absPath).fileName() : symbolicName;
 
-    const QMessageBox::StandardButton answer = QMessageBox::question(
+    QMessageBox::StandardButton const answer = QMessageBox::question(
         this,
         tr("确认卸载 Bundle"),
-        tr("确定要卸载 Bundle \"%1\" 吗？\n这会先停止该 Bundle，再将它从当前框架中卸载。")
-            .arg(bundleName),
+        tr("确定要卸载 Bundle \"%1\" 吗？\n这会先停止该 Bundle，再将它从当前框架中卸载。").arg(bundleName),
         QMessageBox::Yes | QMessageBox::No,
         QMessageBox::No);
 
-    if (answer != QMessageBox::Yes) {
-        common::Logger::info(tr("[卸载] 已取消：%1").arg(bundleName).toStdString());
+    if (answer != QMessageBox::Yes)
+    {
+        common::Log::info(tr("[卸载] 已取消：%1").arg(bundleName).toStdString());
         return;
     }
 
     unloadBundle(row);
 }
 
-void BundleManagerDockWidget::onBundleTableSelectionChanged()
+void
+BundleManagerDockWidget::onBundleTableSelectionChanged()
 {
-    const QModelIndex cur = m_bundleView->selectionModel()->currentIndex();
-    if (!cur.isValid()) {
+    QModelIndex const cur = m_bundleView->selectionModel()->currentIndex();
+    if (!cur.isValid())
+    {
         return;
     }
 }

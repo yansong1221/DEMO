@@ -7,92 +7,119 @@
 #include <memory>
 #include <mutex>
 
-namespace common {
-
-static std::shared_ptr<cppmicroservices::logservice::Logger> s_logger;
-static cppmicroservices::BundleContext s_context;
-static std::mutex s_mutex;
-
-namespace detail {
-
-static std::shared_ptr<cppmicroservices::logservice::LoggerFactory>
-get_logger_factory(cppmicroservices::BundleContext context)
+namespace common
 {
-    if (!context)
-        return nullptr;
 
-    auto ref = context.GetServiceReference<cppmicroservices::logservice::LoggerFactory>();
-    if (!ref) {
-        return nullptr;
+    static std::shared_ptr<cppmicroservices::logservice::Logger> s_logger;
+    static cppmicroservices::BundleContext s_context;
+    static std::mutex s_mutex;
+
+    namespace detail
+    {
+
+        static std::shared_ptr<cppmicroservices::logservice::LoggerFactory>
+        get_logger_factory(cppmicroservices::BundleContext context)
+        {
+            if (!context)
+            {
+                return nullptr;
+            }
+
+            auto ref = context.GetServiceReference<cppmicroservices::logservice::LoggerFactory>();
+            if (!ref)
+            {
+                return nullptr;
+            }
+            return context.GetService<cppmicroservices::logservice::LoggerFactory>(ref);
+        }
+
+        static std::shared_ptr<cppmicroservices::logservice::Logger>
+        get_logger(cppmicroservices::BundleContext context,
+                   std::string const& name = cppmicroservices::logservice::LoggerFactory::ROOT_LOGGER_NAME)
+        {
+            auto factory = get_logger_factory(context);
+            if (!factory)
+            {
+                return nullptr;
+            }
+            return factory->getLogger(context.GetBundle(), name);
+        }
+        static std::shared_ptr<cppmicroservices::logservice::Logger>
+        get_logger()
+        {
+            std::lock_guard<std::mutex> lock(s_mutex);
+            if (!s_context)
+            {
+                return nullptr;
+            }
+            if (!s_logger)
+            {
+                s_logger = detail::get_logger(s_context);
+            }
+            return s_logger;
+        }
+    } // namespace detail
+
+    void
+    Log::init(cppmicroservices::BundleContext const& context)
+    {
+        std::lock_guard<std::mutex> lock(s_mutex);
+
+        s_context = context;
+        s_logger = detail::get_logger(context);
     }
-    return context.GetService<cppmicroservices::logservice::LoggerFactory>(ref);
-}
 
-static std::shared_ptr<cppmicroservices::logservice::Logger>
-get_logger(cppmicroservices::BundleContext context,
-           const std::string& name = cppmicroservices::logservice::LoggerFactory::ROOT_LOGGER_NAME)
-{
-    auto factory = get_logger_factory(context);
-    if (!factory) {
-        return nullptr;
+    void
+    Log::reset()
+    {
+        std::lock_guard<std::mutex> lock(s_mutex);
+        s_logger = nullptr;
+        s_context = nullptr;
     }
-    return factory->getLogger(context.GetBundle(), name);
-}
-static std::shared_ptr<cppmicroservices::logservice::Logger> get_logger()
-{
-    std::lock_guard<std::mutex> lock(s_mutex);
-    if (!s_context)
-        return nullptr;
-    if (!s_logger) {
-        s_logger = detail::get_logger(s_context);
+
+    void
+    Log::info(std::string const& message)
+    {
+        if (auto logger = detail::get_logger(); logger)
+        {
+            logger->info(message);
+        }
     }
-    return s_logger;
-}
-} // namespace detail
 
-void logger::init(cppmicroservices::BundleContext const& context)
-{
-    std::lock_guard<std::mutex> lock(s_mutex);
+    void
+    Log::warn(std::string const& message)
+    {
+        if (auto logger = detail::get_logger(); logger)
+        {
+            logger->warn(message);
+        }
+    }
 
-    s_context = context;
-    s_logger  = detail::get_logger(context);
-}
+    void
+    Log::error(std::string const& message)
+    {
+        if (auto logger = detail::get_logger(); logger)
+        {
+            logger->error(message);
+        }
+    }
 
-void logger::reset()
-{
-    std::lock_guard<std::mutex> lock(s_mutex);
-    s_logger  = nullptr;
-    s_context = nullptr;
-}
+    void
+    Log::debug(std::string const& message)
+    {
+        if (auto logger = detail::get_logger(); logger)
+        {
+            logger->debug(message);
+        }
+    }
 
-void logger::info(const std::string& message)
-{
-    if (auto logger = detail::get_logger(); logger)
-        logger->info(message);
-}
-
-void logger::warn(const std::string& message)
-{
-    if (auto logger = detail::get_logger(); logger)
-        logger->warn(message);
-}
-
-void logger::error(const std::string& message)
-{
-    if (auto logger = detail::get_logger(); logger)
-        logger->error(message);
-}
-
-void logger::debug(const std::string& message)
-{
-    if (auto logger = detail::get_logger(); logger)
-        logger->debug(message);
-}
-
-void logger::trace(const std::string& message)
-{
-    if (auto logger = detail::get_logger(); logger)
-        logger->trace(message);
-}
+    void
+    Log::trace(std::string const& message)
+    {
+        if (auto logger = detail::get_logger(); logger)
+        {
+            logger->trace(message);
+        }
+    }
 
 } // namespace common

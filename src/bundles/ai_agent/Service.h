@@ -4,14 +4,15 @@
 #include "service/ITaskService.h"
 #include <boost/asio/io_context.hpp>
 
-class Service : public service::ITaskService,
-                public service::IAIAgentService,
-                public std::enable_shared_from_this<Service>
+class Service
+    : public service::ITaskService
+    , public service::IAIAgentService
+    , public std::enable_shared_from_this<Service>
 {
-public:
+  public:
     Service();
 
-public:
+  public:
     std::string name() const override;
 
     bool onThreadRun() override;
@@ -28,8 +29,7 @@ public:
     std::shared_ptr<IDetectPanel> createDetectPanel() const override;
     void detect(std::shared_ptr<IDetectPanel> panel) override;
 
-private:
+  private:
     std::unique_ptr<boost::asio::io_context> ioc_;
-    std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>
-        workGuard_;
+    std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> workGuard_;
 };

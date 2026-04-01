@@ -6,8 +6,6 @@ find_package(spdlog CONFIG REQUIRED)
 
 include(FetchKDDockWidgets)
 
-set(CMAKE_AUTOMOC ON)
-
 file(GLOB_RECURSE MODULE_SOURCES 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.h 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp 
@@ -26,7 +24,7 @@ target_include_directories(${MODULE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(${MODULE} PRIVATE Qt5::Widgets KDAB::kddockwidgets CppMicroServices usLogService spdlog::spdlog imgui)
 target_link_libraries(${MODULE} PRIVATE service_interface)
-set_target_properties(${MODULE} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set_target_properties(${MODULE} PROPERTIES AUTOMOC ON)
 
 # 定义 Bundle 名称（用于 CppMicroServices 的 BundleActivator）
 target_compile_definitions(${MODULE} PRIVATE US_BUNDLE_NAME=${MODULE})

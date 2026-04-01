@@ -15,11 +15,11 @@
 #include <string>
 #include <vector>
 
-
-class TaskServiceController : public service::ITaskServiceManager::ITaskServiceController,
-                              public Thread
+class TaskServiceController
+    : public service::ITaskServiceManager::ITaskServiceController
+    , public Thread
 {
-public:
+  public:
     TaskServiceController(cppmicroservices::ServiceReference<service::ITaskService> ref,
                           std::shared_ptr<service::ITaskService> service)
         : m_ref(ref)
@@ -29,33 +29,39 @@ public:
 
     ~TaskServiceController() override { stop(); }
 
-    std::string symbolicName() const override
+    std::string
+    symbolicName() const override
     {
-        try {
+        try
+        {
             auto b = m_ref.GetBundle();
             return b ? b.GetSymbolicName() : std::string();
         }
-        catch (...) {
+        catch (...)
+        {
             return std::string();
         }
     }
-    std::string serviceName() const override { return m_service->name(); }
-    TaskServiceStatus status() const override
-    {
-        return isRunning() ? TaskServiceStatus::Running : TaskServiceStatus::Stopped;
-    }
-    std::shared_ptr<service::ITaskService::IBasicConfig> createConfig() const override
-    {
-        return m_service->createConfig();
-    }
-    void setStatusCallback(TaskServiceStatusCallback callback) override
+    std::string
+    serviceName() const override
+    { return m_service->name(); }
+    TaskServiceStatus
+    status() const override
+    { return isRunning() ? TaskServiceStatus::Running : TaskServiceStatus::Stopped; }
+    std::shared_ptr<service::ITaskService::IBasicConfig>
+    createConfig() const override
+    { return m_service->createConfig(); }
+    void
+    setStatusCallback(TaskServiceStatusCallback callback) override
     {
         std::lock_guard lock(m_mutex);
         m_statusCallback = std::move(callback);
     }
-    bool start(std::shared_ptr<service::ITaskService::IBasicConfig> config) override
+    bool
+    start(std::shared_ptr<service::ITaskService::IBasicConfig> config) override
     {
-        if (isRunning()) {
+        if (isRunning())
+        {
             return true;
         }
         {
@@ -65,44 +71,55 @@ public:
         return Thread::startThread();
     }
 
-    void stop()
+    void
+    stop()
     {
-        if (isRunning()) {
+        if (isRunning())
+        {
             m_service->requestStop();
             Thread::stopThread();
         }
     }
-    bool isSelf(cppmicroservices::ServiceReference<service::ITaskService> const& reference,
-                std::shared_ptr<service::ITaskService> const& service) const
-    {
-        return m_ref == reference && m_service == service;
-    }
+    bool
+    isSelf(cppmicroservices::ServiceReference<service::ITaskService> const& reference,
+           std::shared_ptr<service::ITaskService> const& service) const
+    { return m_ref == reference && m_service == service; }
 
-private:
-    bool onThreadStart() override
+  private:
+    bool
+    onThreadStart() override
     {
         if (!m_service->onThreadStart(m_config))
+        {
             return false;
+        }
 
         std::lock_guard lock(m_mutex);
         if (m_statusCallback)
+        {
             m_statusCallback(TaskServiceStatus::Running);
+        }
 
         return true;
     }
-    bool onThreadRun() override { return m_service->onThreadRun(); }
-    void onThreadEnd() override
+    bool
+    onThreadRun() override
+    { return m_service->onThreadRun(); }
+    void
+    onThreadEnd() override
     {
         m_service->onThreadEnd();
 
         std::lock_guard lock(m_mutex);
         if (m_statusCallback)
+        {
             m_statusCallback(TaskServiceStatus::Stopped);
+        }
 
         m_config.reset();
     }
 
-private:
+  private:
     cppmicroservices::ServiceReference<service::ITaskService> m_ref;
     std::shared_ptr<service::ITaskService> m_service;
     std::shared_ptr<service::ITaskService::IBasicConfig> m_config;
@@ -111,30 +128,28 @@ private:
     TaskServiceStatusCallback m_statusCallback;
 };
 
-class TaskServiceManager : public service::ITaskServiceManager,
-                           public cppmicroservices::ServiceTrackerCustomizer<service::ITaskService>
+class TaskServiceManager
+    : public service::ITaskServiceManager
+    , public cppmicroservices::ServiceTrackerCustomizer<service::ITaskService>
 {
-public:
+  public:
     explicit TaskServiceManager(cppmicroservices::BundleContext context);
     ~TaskServiceManager() override;
 
     std::vector<ControllerPtr> listTaskControllers() const override;
     void setControllerEventCallback(ControllerEventCallback callback) override;
 
-
-protected:
+  protected:
     std::shared_ptr<service::ITaskService> AddingService(
         cppmicroservices::ServiceReference<service::ITaskService> const& reference) override;
-
 
     void ModifiedService(cppmicroservices::ServiceReference<service::ITaskService> const& reference,
                          std::shared_ptr<service::ITaskService> const& service) override;
 
-
     void RemovedService(cppmicroservices::ServiceReference<service::ITaskService> const& reference,
                         std::shared_ptr<service::ITaskService> const& service) override;
 
-private:
+  private:
     cppmicroservices::BundleContext m_context;
     cppmicroservices::ServiceTracker<service::ITaskService> m_Tracker;
 

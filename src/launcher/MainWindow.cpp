@@ -1,8 +1,8 @@
 #include "MainWindow.h"
-#include "bundle/BundleManagerDockWidget.h"
-#include "log/LogServiceImpl.h"
-#include "log/LogWidget.h"
-#include "task/TaskServiceDockWidget.h"
+#include "BundleManager/BundleManagerDockWidget.h"
+#include "LogService/LogServiceImpl.h"
+#include "LogService/LogWidget.h"
+#include "TaskServiceManager/TaskServiceDockWidget.h"
 
 #include <common/Logger.h>
 
@@ -32,7 +32,7 @@ MainWindow::MainWindow(cppmicroservices::BundleContext bundleContext, QWidget* p
 {
     setupUI();
     setupLogService();
-    common::Logger::init(m_bundleContext);
+    common::Log::init(m_bundleContext);
 
 
     {
@@ -59,7 +59,7 @@ MainWindow::MainWindow(cppmicroservices::BundleContext bundleContext, QWidget* p
     setupDockWidgets();
 
     // 使用 Logger 输出启动日志（无需传入 context）
-    common::Logger::info("框架已启动，支持 Bundle 管理和 ITaskService 服务发现。");
+    common::Log::info("框架已启动，支持 Bundle 管理和 ITaskService 服务发现。");
 }
 
 MainWindow::~MainWindow()
@@ -139,17 +139,17 @@ void MainWindow::setupDockWidgets()
 }
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-     for (auto& bundle : m_bundleContext.GetBundles()) {
+    for (auto& bundle : m_bundleContext.GetBundles()) {
         if (bundle == m_bundleContext.GetBundle())
             continue;
-        bundle.Stop(); 
+        bundle.Stop();
     }
 
     m_Tracker.Close();
 
     m_Plugins.clear();
 
-    common::Logger::reset();
+    common::Log::reset();
 
     KDDockWidgets::QtWidgets::MainWindow::closeEvent(event);
 }

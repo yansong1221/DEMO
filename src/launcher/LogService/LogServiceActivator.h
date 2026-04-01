@@ -13,13 +13,13 @@ class LogServiceImpl;
 
 /**
  * @brief LogService 的 BundleActivator
- * 
+ *
  * 在 Bundle 启动时创建并注册 LogService 服务
  * 在 Bundle 停止时注销服务
  */
 class LogServiceActivator : public cppmicroservices::BundleActivator
 {
-public:
+  public:
     LogServiceActivator();
     ~LogServiceActivator() override;
 
@@ -41,9 +41,9 @@ public:
      */
     static LogServiceImpl* GetLogServiceImpl();
 
-private:
+  private:
     static LogServiceActivator* s_instance;
-    
+
     std::shared_ptr<LogServiceImpl> m_logServiceImpl;
     cppmicroservices::ServiceRegistration<cppmicroservices::logservice::LogService> m_serviceRegistration;
     cppmicroservices::ServiceRegistration<cppmicroservices::logservice::LoggerFactory> m_factoryRegistration;
