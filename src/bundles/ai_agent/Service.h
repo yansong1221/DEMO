@@ -3,6 +3,9 @@
 #include "service/IAIAgentService.h"
 #include "service/ITaskService.h"
 #include <boost/asio/io_context.hpp>
+#include <httplib/client/client_pool.hpp>
+
+class Config;
 
 class Service
     : public service::ITaskService
@@ -28,8 +31,11 @@ class Service
     // IAIAgentService 接口实现
     std::shared_ptr<IDetectPanel> createDetectPanel() const override;
     void detect(std::shared_ptr<IDetectPanel> panel) override;
+    boost::asio::awaitable<void> co_detect(std::shared_ptr<IDetectPanel> panel) override;
 
   private:
+    std::shared_ptr<Config> selfConfig_;
     std::unique_ptr<boost::asio::io_context> ioc_;
     std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> workGuard_;
+    std::shared_ptr<httplib::client::http_client_pool> clientPool_;
 };
