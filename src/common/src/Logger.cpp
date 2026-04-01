@@ -1,10 +1,14 @@
-#include "common/Logger.h"
-
+#include "common/logger.h"
 #include <cppmicroservices/Bundle.h>
+#include <cppmicroservices/BundleContext.h>
+#include <cppmicroservices/Framework.h>
+#include <cppmicroservices/logservice/LogService.hpp>
+#include <cppmicroservices/logservice/Logger.hpp>
+#include <memory>
+#include <mutex>
 
 namespace common {
 
-// 静态成员定义
 static std::shared_ptr<cppmicroservices::logservice::Logger> s_logger;
 static cppmicroservices::BundleContext s_context;
 static std::mutex s_mutex;
@@ -12,7 +16,7 @@ static std::mutex s_mutex;
 namespace detail {
 
 static std::shared_ptr<cppmicroservices::logservice::LoggerFactory>
-getLoggerFactory(cppmicroservices::BundleContext context)
+get_logger_factory(cppmicroservices::BundleContext context)
 {
     if (!context)
         return nullptr;
@@ -23,67 +27,72 @@ getLoggerFactory(cppmicroservices::BundleContext context)
     }
     return context.GetService<cppmicroservices::logservice::LoggerFactory>(ref);
 }
-// ========== 从 BundleContext/Framework 获取 Logger ==========
+
 static std::shared_ptr<cppmicroservices::logservice::Logger>
-getLogger(cppmicroservices::BundleContext context,
-          const std::string& name = cppmicroservices::logservice::LoggerFactory::ROOT_LOGGER_NAME)
+get_logger(cppmicroservices::BundleContext context,
+           const std::string& name = cppmicroservices::logservice::LoggerFactory::ROOT_LOGGER_NAME)
 {
-    auto factory = getLoggerFactory(context);
+    auto factory = get_logger_factory(context);
     if (!factory) {
         return nullptr;
     }
     return factory->getLogger(context.GetBundle(), name);
 }
+static std::shared_ptr<cppmicroservices::logservice::Logger> get_logger()
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (!s_context)
+        return nullptr;
+    if (!s_logger) {
+        s_logger = detail::get_logger(s_context);
+    }
+    return s_logger;
+}
 } // namespace detail
 
-void Logger::init(cppmicroservices::BundleContext context)
+void logger::init(cppmicroservices::BundleContext const& context)
 {
     std::lock_guard<std::mutex> lock(s_mutex);
 
     s_context = context;
-    s_logger  = detail::getLogger(context);
+    s_logger  = detail::get_logger(context);
 }
 
-void Logger::reset()
+void logger::reset()
 {
     std::lock_guard<std::mutex> lock(s_mutex);
     s_logger  = nullptr;
     s_context = nullptr;
 }
 
-void Logger::info(const std::string& message)
+void logger::info(const std::string& message)
 {
-    if (auto logger = getLogger(); logger)
+    if (auto logger = detail::get_logger(); logger)
         logger->info(message);
 }
 
-void Logger::warn(const std::string& message)
+void logger::warn(const std::string& message)
 {
-    if (auto logger = getLogger(); logger)
+    if (auto logger = detail::get_logger(); logger)
         logger->warn(message);
 }
 
-void Logger::error(const std::string& message)
+void logger::error(const std::string& message)
 {
-    if (auto logger = getLogger(); logger)
+    if (auto logger = detail::get_logger(); logger)
         logger->error(message);
 }
 
-void Logger::debug(const std::string& message)
+void logger::debug(const std::string& message)
 {
-    if (auto logger = getLogger(); logger)
+    if (auto logger = detail::get_logger(); logger)
         logger->debug(message);
 }
 
-std::shared_ptr<cppmicroservices::logservice::Logger> Logger::getLogger()
+void logger::trace(const std::string& message)
 {
-    std::lock_guard<std::mutex> lock(s_mutex);
-    if (!s_context)
-        return nullptr;
-    if (!s_logger) {
-        s_logger = detail::getLogger(s_context);
-    }
-    return s_logger;
+    if (auto logger = detail::get_logger(); logger)
+        logger->trace(message);
 }
 
 } // namespace common

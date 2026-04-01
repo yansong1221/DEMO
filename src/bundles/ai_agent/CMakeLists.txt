@@ -1,6 +1,6 @@
 
 
-find_package(Boost REQUIRED COMPONENTS asio CONFIG)
+find_package(Boost REQUIRED COMPONENTS asio json beast CONFIG)
 find_package(OpenCV REQUIRED)
 
 file(GLOB_RECURSE MODULE_SOURCES 
@@ -17,5 +17,5 @@ us_add_bundle(
     TARGET ai_agent
     SOURCES ${MODULE_SOURCES}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    LINK_LIBRARIES imgui Boost::asio ${OpenCV_LIBS}
+    LINK_LIBRARIES imgui Boost::asio Boost::json Boost::beast ${OpenCV_LIBS}
 )

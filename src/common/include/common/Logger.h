@@ -1,35 +1,50 @@
 #pragma once
-
-#include <cppmicroservices/BundleContext.h>
-#include <cppmicroservices/Framework.h>
-#include <cppmicroservices/logservice/LogService.hpp>
-#include <cppmicroservices/logservice/Logger.hpp>
-#include <memory>
-#include <mutex>
+#include <format>
 #include <string>
-#include <vector>
+
+namespace cppmicroservices {
+class BundleContext;
+}
 
 namespace common {
 
-// 日志门面类 - 简化 cppmicroservices::logservice::Logger 的使用
-// 支持两种方式：
-// 1. 全局模式：先调用 init() 设置 BundleContext，之后可直接使用 info/warn/error/debug/trace
-// 2. 显式模式：每次调用时传入 BundleContext 或 Framework
-class Logger
+class logger
 {
 public:
-    // ========== 全局初始化 ==========
-    // 初始化全局 BundleContext（通常在 launcher 启动时调用一次）
-    static void init(cppmicroservices::BundleContext context);
-    // 重置全局 BundleContext
+    static void init(cppmicroservices::BundleContext const& context);
     static void reset();
 
     static void info(const std::string& message);
     static void warn(const std::string& message);
     static void error(const std::string& message);
     static void debug(const std::string& message);
+    static void trace(const std::string& message);
 
-    static std::shared_ptr<cppmicroservices::logservice::Logger> getLogger();
+    template<class... _Types>
+    inline static void info(const std::format_string<_Types...> _Fmt, _Types&&... _Args)
+    {
+        logger::info(std::format(_Fmt, std::forward<_Types>(_Args)...));
+    }
+    template<class... _Types>
+    inline static void warn(const std::format_string<_Types...> _Fmt, _Types&&... _Args)
+    {
+        logger::warn(std::format(_Fmt, std::forward<_Types>(_Args)...));
+    }
+    template<class... _Types>
+    inline static void error(const std::format_string<_Types...> _Fmt, _Types&&... _Args)
+    {
+        logger::error(std::format(_Fmt, std::forward<_Types>(_Args)...));
+    }
+    template<class... _Types>
+    inline static void debug(const std::format_string<_Types...> _Fmt, _Types&&... _Args)
+    {
+        logger::debug(std::format(_Fmt, std::forward<_Types>(_Args)...));
+    }
+    template<class... _Types>
+    inline static void trace(const std::format_string<_Types...> _Fmt, _Types&&... _Args)
+    {
+        logger::trace(std::format(_Fmt, std::forward<_Types>(_Args)...));
+    }
 };
 
 } // namespace common

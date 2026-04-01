@@ -1,4 +1,6 @@
 #include "Service.h"
+#include "Config.h"
+#include "DetectPanel.h"
 #include <boost/asio/dispatch.hpp>
 
 Service::Service()
@@ -34,7 +36,7 @@ void Service::onThreadEnd()
 
 std::shared_ptr<service::ITaskService::IBasicConfig> Service::createConfig() const
 {
-    return std::make_shared<DemoTaskConfig>();
+    return std::make_shared<Config>();
 }
 
 void Service::requestStop()
@@ -48,7 +50,7 @@ void Service::requestStop()
 
 std::shared_ptr<service::IAIAgentService::IDetectPanel> Service::createDetectPanel() const
 {
-    return nullptr;
+    return std::make_shared<DetectPanelImpl>();
 }
 
 void Service::detect(std::shared_ptr<service::IAIAgentService::IDetectPanel> panel)
