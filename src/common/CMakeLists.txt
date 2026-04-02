@@ -4,9 +4,6 @@ set(MODULE common)
 find_package(CppMicroServices REQUIRED)
 find_package(Boost REQUIRED COMPONENTS beast CONFIG)
 find_package(OpenCV REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core)
-
-include(FetchNFD)
 
 file(GLOB_RECURSE MODULE_SOURCES 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.h 
@@ -30,8 +27,6 @@ target_link_libraries(${MODULE} PUBLIC
     service_interface
     Boost::beast
     imgui
-    nfd
-    Qt5::Core
     ${OpenCV_LIBS}
 )
 target_compile_definitions(${MODULE} PRIVATE USE_STD_FILESYSTEM)

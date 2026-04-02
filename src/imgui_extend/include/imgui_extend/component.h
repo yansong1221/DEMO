@@ -12,8 +12,6 @@ namespace ImGui::extend
                                        bool enabled = true,
                                        ImVec2 const& size = ImVec2(0, 0));
 
-    IMGUI_EXTEND_API bool InputDirectory(std::string const& label, std::string* directory);
-
     IMGUI_EXTEND_API bool InputInt(char const* label,
                                    int* v,
                                    int v_min = std::numeric_limits<int>::min(),
@@ -43,16 +41,11 @@ namespace ImGui::extend
     {
       public:
         FileDialog();
-        ~FileDialog();
+        virtual ~FileDialog();
 
       public:
         bool InputDirectory(std::string const& key, std::string const& label, std::string* directory);
-
-      public:
-        void open();
-        bool display();
-        void close();
-        std::string selectedDirectory() const;
+        bool InputDirectory(std::string const& key, std::string const& label, std::filesystem::path* directory);
 
       private:
         std::unique_ptr<FileDialogImpl> impl_;

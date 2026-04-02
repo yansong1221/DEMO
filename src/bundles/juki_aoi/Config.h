@@ -19,7 +19,7 @@ class Config : public ImGui::extend::GroupBasicConfig
         void
         draw() override
         {
-            ImGui::extend::InputDirectory("AOI Directory", &aoi_dir);
+            fileDialog.InputDirectory("123", "AOI Directory", &aoi_dir);
         }
         void
         save(YAML::Node& conf) const override
@@ -33,6 +33,7 @@ class Config : public ImGui::extend::GroupBasicConfig
             aoi_dir = conf["aoi_dir"].as<std::string>("");
         }
         std::string aoi_dir = "aoi";
+        ImGui::extend::FileDialog fileDialog;
     };
     Config();
 
