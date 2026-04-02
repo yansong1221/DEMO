@@ -184,46 +184,12 @@ TaskServiceTableModel::refreshControllers()
     }
 }
 
-bool
-TaskServiceTableModel::attachListener()
-{
-    if (!m_taskServiceManager)
-    {
-        return false;
-    }
-
-    try
-    {
-        m_taskServiceManager->setControllerEventCallback(
-            [this](std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller,
-                   service::ITaskServiceManager::ControllerEvent event)
-            {
-                QMetaObject::invokeMethod(this, [this, controller, event]() { onControllerEvent(controller, event); });
-            });
-        return true;
-    }
-    catch (std::exception const& e)
-    {
-        common::Log::error(tr("[任务服务] 注册控制器事件回调失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
-        return false;
-    }
-}
-
 void
 TaskServiceTableModel::detachListener()
 {
-    if (!m_taskServiceManager)
-    {
-        return;
-    }
-
-    try
+    if (m_taskServiceManager)
     {
         m_taskServiceManager->setControllerEventCallback(nullptr);
-    }
-    catch (...)
-    {
-        // 忽略异常
     }
 }
 
@@ -389,7 +355,7 @@ TaskServiceTableModel::configureService(int row, std::shared_ptr<service::ITaskS
     try
     {
         auto controller = m_controllers[static_cast<size_t>(row)];
-        //controller->updateConfig(config);
+        // controller->updateConfig(config);
     }
     catch (std::exception const& e)
     {
@@ -416,7 +382,13 @@ TaskServiceTableModel::AddingService(cppmicroservices::ServiceReference<service:
             m_controllers = m_taskServiceManager->listTaskControllers();
             endResetModel();
 
-            attachListener();
+            m_taskServiceManager->setControllerEventCallback(
+                [this](std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller,
+                       service::ITaskServiceManager::ControllerEvent event)
+                {
+                    QMetaObject::invokeMethod(this,
+                                              [this, controller, event]() { onControllerEvent(controller, event); });
+                });
             return m_taskServiceManager;
         }
     }

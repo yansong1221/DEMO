@@ -23,17 +23,9 @@ TaskServiceDockWidget::TaskServiceDockWidget(cppmicroservices::BundleContext bun
     Q_UNUSED(parent)
     setupUI();
     setupConnections();
-
-    // 启动监听器
-    if (!m_taskServiceModel->attachListener())
-    {
-        common::Log::error(tr("[监听] 在模型中注册任务服务监听器失败。").toStdString());
-    }
-
-    m_taskServiceModel->refresh();
 }
 
-TaskServiceDockWidget::~TaskServiceDockWidget() { m_taskServiceModel->detachListener(); }
+TaskServiceDockWidget::~TaskServiceDockWidget() {}
 
 void
 TaskServiceDockWidget::setupUI()

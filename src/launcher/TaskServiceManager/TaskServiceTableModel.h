@@ -42,7 +42,6 @@ class TaskServiceTableModel
 
     void refresh();
 
-    bool attachListener();
     void detachListener();
 
     bool isRunning(int row) const;
