@@ -26,11 +26,6 @@ class TaskServiceDockWidget : public KDDockWidgets::QtWidgets::DockWidget
     void stopTaskService(int row);
     void configureTaskService(int row);
 
-  signals:
-    void taskServiceStarted(int row);
-    void taskServiceStopped(int row);
-    void taskServiceConfigured(int row);
-
   private slots:
     void onRefreshTaskServices();
     void onTaskServiceStartStopRequested(int row);

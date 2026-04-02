@@ -14,8 +14,25 @@ if(NOT TARGET imgui)
     )
     FetchContent_MakeAvailable(imgui)
 
+
+
     # 配置 ImGui 源码文件
     set(IMGUI_DIR ${imgui_SOURCE_DIR})
+
+        file(WRITE ${IMGUI_DIR}/imgui_export.h
+"#pragma once
+
+#if defined(_WIN32)
+    #if defined(IMGUI_EXPORTS)
+        #define IMGUI_API __declspec(dllexport)
+    #else
+        #define IMGUI_API __declspec(dllimport)
+    #endif
+#else
+    #define IMGUI_API __attribute__((visibility(\"default\")))
+#endif
+")
+
     file(GLOB IMGUI_SOURCES
         "${IMGUI_DIR}/*.cpp"
         "${IMGUI_DIR}/misc/freetype/*.cpp"
@@ -23,12 +40,14 @@ if(NOT TARGET imgui)
     )
     
     # 创建 ImGui 静态库
-    add_library(imgui STATIC ${IMGUI_SOURCES})
+    add_library(imgui SHARED ${IMGUI_SOURCES})
     
     target_include_directories(imgui PUBLIC
         ${IMGUI_DIR}
         ${IMGUI_DIR}/misc/cpp
     )
+    target_compile_definitions(imgui PRIVATE IMGUI_EXPORTS )
+    target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="imgui_export.h")
     
     target_link_libraries(imgui PRIVATE Freetype::Freetype)
 

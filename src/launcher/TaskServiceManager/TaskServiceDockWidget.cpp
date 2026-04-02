@@ -6,6 +6,7 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QItemSelectionModel>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QSpacerItem>
 #include <QTableView>
@@ -117,7 +118,7 @@ TaskServiceDockWidget::startTaskService(int row)
         common::Log::warn(tr("[任务服务] 服务 %1 启动失败。").arg(row + 1).toStdString());
     }
 
-    emit taskServiceStarted(row);
+    // emit taskServiceStarted(row);
 }
 
 void
@@ -132,7 +133,7 @@ TaskServiceDockWidget::stopTaskService(int row)
     m_taskServiceModel->stopService(row);
     common::Log::info(tr("[任务服务] 服务 %1 已停止。").arg(row + 1).toStdString());
 
-    emit taskServiceStopped(row);
+    // emit taskServiceStopped(row);
 }
 
 void
@@ -142,9 +143,23 @@ TaskServiceDockWidget::configureTaskService(int row)
     {
         return;
     }
+    auto config = m_taskServiceModel->createConfig(row);
 
-    common::Log::info(tr("[任务服务] 配置服务 %1").arg(row + 1).toStdString());
-    emit taskServiceConfigured(row);
+    TaskServiceConfigDialog dialog(config, this);
+    if (dialog.exec() != QDialog::Accepted)
+    {
+        return; // 用户取消了配置，直接返回
+    }
+    m_taskServiceModel->configureService(row, config);
+
+    if (m_taskServiceModel->isRunning(row))
+    {
+        if (QMessageBox::question(this, tr("询问"), tr("是否重启服务?")) == QMessageBox::Yes)
+        {
+            m_taskServiceModel->stopService(row);
+            m_taskServiceModel->startService(row);
+        }
+    }
 }
 
 int

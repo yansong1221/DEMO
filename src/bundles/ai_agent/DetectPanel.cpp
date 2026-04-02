@@ -1,5 +1,6 @@
 #include "DetectPanel.h"
 #include "common/Logger.h"
+#include "common/misc.h"
 
 // namespace detail {
 //
@@ -393,96 +394,89 @@ DetectPanelImpl::toOpResultJson() const
 }
 
 void
-DetectPanelImpl::parseAiResult(boost::json::value const& json)
+DetectPanelImpl::parseAiResult(boost::json::value const& json) noexcept
 {
-    for (auto const& json_comp : json.at("component_info").as_array())
+    try
     {
-        int board_index = json_comp.at("board_index").to_number<int>();
-        std::string comp_name(json_comp.at("name").as_string());
-        std::string comp_result(json_comp.at("result").as_string());
-
-        auto _comp = static_cast<DetectComponentImpl*>(findComponent(board_index, comp_name));
-        if (!_comp)
+        for (auto const& json_comp : json.at("component_info").as_array())
         {
-            common::Log::warn(
-                R"(AI结果中找不到对应的元件: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {})",
-                m_line,
-                m_station,
-                m_name,
-                m_sn,
-                board_index,
-                comp_name);
-            continue;
-        }
-        if (comp_result == "P")
-        {
-            common::Log::info(R"(AI结果元件OK: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {})",
-                              m_line,
-                              m_station,
-                              m_name,
-                              m_sn,
-                              board_index,
-                              comp_name);
-            _comp->m_isAiOk = true;
-        }
+            int board_index = json_comp.at("board_index").to_number<int>();
+            std::string comp_name(json_comp.at("name").as_string());
+            std::string comp_result(json_comp.at("result").as_string());
 
-        for (auto const& json_win : json_comp.at("window_info").as_array())
-        {
-            std::string win_name(json_win.at("name").as_string());
-            std::string win_light(json_win.at("light").as_string());
-            std::string_view win_result = json_win.at("result").as_string();
-
-            auto _win = static_cast<DetectWindowImpl*>(_comp->findWindow(win_name, win_light));
-            if (!_win)
+            auto _comp = static_cast<DetectComponentImpl*>(findComponent(board_index, comp_name));
+            if (!_comp)
             {
                 common::Log::warn(
-                    R"(AI结果中找不到对应的窗口: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {} WIN_NAME: {} WIN_LIGHT: {})",
+                    R"(AI结果中找不到对应的元件: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {})",
                     m_line,
                     m_station,
                     m_name,
                     m_sn,
                     board_index,
-                    comp_name,
-                    win_name,
-                    win_light);
+                    comp_name);
                 continue;
             }
-            if (win_result == "P")
+            if (comp_result == "P")
             {
-                common::Log::info(
-                    R"(AI结果窗口OK: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {} WIN_NAME: {} WIN_LIGHT: {})",
-                    m_line,
-                    m_station,
-                    m_name,
-                    m_sn,
-                    board_index,
-                    comp_name,
-                    win_name,
-                    win_light);
-                _win->m_isAiOk = true;
+                common::Log::info(R"(AI结果元件OK: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {})",
+                                  m_line,
+                                  m_station,
+                                  m_name,
+                                  m_sn,
+                                  board_index,
+                                  comp_name);
+                _comp->m_isAiOk = true;
+            }
+
+            for (auto const& json_win : json_comp.at("window_info").as_array())
+            {
+                std::string win_name(json_win.at("name").as_string());
+                std::string win_light(json_win.at("light").as_string());
+                std::string_view win_result = json_win.at("result").as_string();
+
+                auto _win = static_cast<DetectWindowImpl*>(_comp->findWindow(win_name, win_light));
+                if (!_win)
+                {
+                    common::Log::warn(
+                        R"(AI结果中找不到对应的窗口: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {} WIN_NAME: {} WIN_LIGHT: {})",
+                        m_line,
+                        m_station,
+                        m_name,
+                        m_sn,
+                        board_index,
+                        comp_name,
+                        win_name,
+                        win_light);
+                    continue;
+                }
+                if (win_result == "P")
+                {
+                    common::Log::info(
+                        R"(AI结果窗口OK: LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {} WIN_NAME: {} WIN_LIGHT: {})",
+                        m_line,
+                        m_station,
+                        m_name,
+                        m_sn,
+                        board_index,
+                        comp_name,
+                        win_name,
+                        win_light);
+                    _win->m_isAiOk = true;
+                }
             }
         }
     }
+    catch (std::exception const& e)
+    {
+        common::Log::warn("解析AI结果 LINE: {} STATION: {} NAME: {} SN: {},出现异常: {}",
+                          m_line,
+                          m_station,
+                          m_name,
+                          m_sn,
+                          common::misc::to_u8string(e.what()));
+    }
 }
-
-// boost::asio::awaitable<void> detect_panel::proc_detect(
-//     std::string_view ip,
-//     int port,
-//     const std::optional<std::chrono::seconds>& timeout_seconds /*= std::nullopt*/)
-//{
-//     auto response = co_await detail::send_ai_post_request(
-//         ip, port, "/collect/sync", to_detect_json(), timeout_seconds);
-//
-//     if (enabled_trust_mode && response) {
-//         parse_ai_result(*response);
-//     }
-// }
-//
-// boost::asio::awaitable<void> detect_panel::proc_op_result(std::string_view ip, int port) const
-//{
-//     spdlog::info("给AI发送复判 LINE: {} STATION: {} NAME: {} SN: {}", line, station, name, sn);
-//     co_await detail::send_ai_post_request(ip, port, "/op_result", to_op_result_json());
-// }
 
 std::string const&
 DetectBoardImpl::sn() const

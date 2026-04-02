@@ -13,5 +13,5 @@ us_add_bundle(
     TARGET juki_aoi
     SOURCES ${MODULE_SOURCES}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    LINK_LIBRARIES imgui
+    LINK_LIBRARIES imgui common
 )

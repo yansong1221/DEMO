@@ -16,6 +16,7 @@ class Service
     Service();
 
   public:
+    // ITaskService 接口实现
     std::string name() const override;
 
     bool onThreadRun() override;
@@ -32,6 +33,10 @@ class Service
     std::shared_ptr<IDetectPanel> createDetectPanel() const override;
     void detect(std::shared_ptr<IDetectPanel> panel) override;
     boost::asio::awaitable<void> coroDetect(std::shared_ptr<IDetectPanel> panel) override;
+
+  private:
+    httplib::client::http_client_pool::ClientHandle createHttpClient(
+        std::optional<std::chrono::milliseconds> const& timeout_seconds);
 
   private:
     std::shared_ptr<Config> selfConfig_;

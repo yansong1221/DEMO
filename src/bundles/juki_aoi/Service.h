@@ -1,50 +1,58 @@
 #pragma once
+#include "cppmicroservices/ServiceTracker.h"
 #include "imgui.h"
+#include "service/IAIAgentService.h"
 #include "service/ITaskService.h"
 
 class DemoTaskConfig : public service::ITaskService::IBasicConfig
 {
-public:
-    void draw(ImGuiContext* ctx) override
+  public:
+    void
+    draw() override
     {
-        ImGui::SetCurrentContext(ctx);
         ImGui::BulletText("显示中文");
         ImGui::BulletText("heelo");
         ImGui::Button("123456");
         ImGui::ShowDemoWindow();
     }
 
-    void save(YAML::Node& conf) const override
+    void
+    save(YAML::Node& conf) const override
     {
-        conf["task_name"]    = taskName;
-        conf["interval_ms"]  = intervalMs;
+        conf["task_name"] = taskName;
+        conf["interval_ms"] = intervalMs;
         conf["auto_restart"] = autoRestart;
     }
 
-    void restore(YAML::Node conf) override
+    void
+    restore(YAML::Node conf) override
     {
-        if (conf["task_name"]) {
+        if (conf["task_name"])
+        {
             taskName = conf["task_name"].as<std::string>();
         }
-        if (conf["interval_ms"]) {
+        if (conf["interval_ms"])
+        {
             intervalMs = conf["interval_ms"].as<int>();
         }
-        if (conf["auto_restart"]) {
+        if (conf["auto_restart"])
+        {
             autoRestart = conf["auto_restart"].as<bool>();
         }
     }
 
-    std::optional<std::string> displayName() const override { return taskName; }
-
     std::string taskName = "demo.task";
-    int intervalMs       = 1000;
-    bool autoRestart     = false;
+    int intervalMs = 1000;
+    bool autoRestart = false;
 };
-
 
 class Service : public service::ITaskService
 {
-public:
+  public:
+    Service(cppmicroservices::BundleContext const& context);
+    ~Service();
+
+  public:
     std::string name() const override;
 
     bool onThreadRun() override;
@@ -56,4 +64,7 @@ public:
     std::shared_ptr<IBasicConfig> createConfig() const override;
 
     void requestStop() override;
+
+  private:
+    cppmicroservices::ServiceTracker<service::IAIAgentService> m_aiAgentTracker;
 };

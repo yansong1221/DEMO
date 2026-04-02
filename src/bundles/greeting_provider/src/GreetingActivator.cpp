@@ -18,9 +18,8 @@ namespace demo
     {
       public:
         void
-        draw(ImGuiContext* ctx) override
+        draw() override
         {
-            ImGui::SetCurrentContext(ctx);
             ImGui::BulletText("显示中文");
             ImGui::BulletText("heelo");
             ImGui::Button("123456");
@@ -50,12 +49,6 @@ namespace demo
             {
                 autoRestart = conf["auto_restart"].as<bool>();
             }
-        }
-
-        std::optional<std::string>
-        displayName() const override
-        {
-            return taskName;
         }
 
         std::string taskName = "demo.task";

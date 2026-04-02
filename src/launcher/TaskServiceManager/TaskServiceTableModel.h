@@ -49,6 +49,9 @@ class TaskServiceTableModel
     bool startService(int row);
     void stopService(int row);
 
+    std::shared_ptr<service::ITaskService::IBasicConfig> createConfig(int row);
+    void configureService(int row, std::shared_ptr<service::ITaskService::IBasicConfig> config);
+
   protected:
     std::shared_ptr<service::ITaskServiceManager> AddingService(
         cppmicroservices::ServiceReference<service::ITaskServiceManager> const& reference) override;

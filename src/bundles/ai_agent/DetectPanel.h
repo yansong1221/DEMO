@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 #include "service/IAIAgentService.h"
 #include <boost/asio/awaitable.hpp>
 #include <boost/json/value.hpp>
@@ -117,7 +118,7 @@ struct DetectPanelImpl : public service::IAIAgentService::IDetectPanel
     boost::json::value toOpResultJson() const;
     boost::json::value toDetectJson() const;
 
-    void parseAiResult(boost::json::value const& json);
+    void parseAiResult(boost::json::value const& json) noexcept;
 
     // boost::asio::awaitable<void>
     // proc_detect(std::string_view ip,

@@ -15,7 +15,7 @@ TaskServiceConfigWidget::~TaskServiceConfigWidget() {}
 void
 TaskServiceConfigWidget::drawImgui()
 {
-    config_->draw(ImGui::GetCurrentContext());
+    config_->draw();
 }
 
 TaskServiceConfigDialog::TaskServiceConfigDialog(std::shared_ptr<service::ITaskService::IBasicConfig> config,
@@ -34,4 +34,5 @@ TaskServiceConfigDialog::TaskServiceConfigDialog(std::shared_ptr<service::ITaskS
     QObject::connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     layout->addWidget(buttonBox);
+    this->resize(400, 300);
 }

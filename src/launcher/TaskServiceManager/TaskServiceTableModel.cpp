@@ -22,7 +22,6 @@ namespace
         QByteArray const utf8 = value.toUtf8();
         return std::string(utf8.constData(), static_cast<size_t>(utf8.size()));
     }
-
 } // namespace
 
 TaskServiceTableModel::TaskServiceTableModel(cppmicroservices::BundleContext bundleContext, QObject* parent)
@@ -335,7 +334,7 @@ TaskServiceTableModel::startService(int row)
 
     try
     {
-        auto controller = m_controllers[static_cast<size_t>(row)];
+        auto controller = m_controllers[row];
         if (controller->status() == service::ITaskServiceManager::ITaskServiceController::TaskServiceStatus::Running)
         {
             return true; // 已经在运行
@@ -367,6 +366,34 @@ TaskServiceTableModel::stopService(int row)
     catch (std::exception const& e)
     {
         common::Log::error(tr("[任务服务] 停止服务失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
+    }
+}
+
+std::shared_ptr<service::ITaskService::IBasicConfig>
+TaskServiceTableModel::createConfig(int row)
+{
+    if (row < 0 || row >= m_controllers.size() || !m_taskServiceManager)
+    {
+        return nullptr;
+    }
+    return m_controllers[row]->createConfig();
+}
+
+void
+TaskServiceTableModel::configureService(int row, std::shared_ptr<service::ITaskService::IBasicConfig> config)
+{
+    if (row < 0 || row >= m_controllers.size() || !m_taskServiceManager)
+    {
+        return;
+    }
+    try
+    {
+        auto controller = m_controllers[static_cast<size_t>(row)];
+        //controller->updateConfig(config);
+    }
+    catch (std::exception const& e)
+    {
+        common::Log::error(tr("[任务服务] 配置服务失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
     }
 }
 

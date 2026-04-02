@@ -3,10 +3,8 @@
 #include "imgui_stdlib.h"
 
 void
-Config::draw(ImGuiContext* ctx)
+Config::draw()
 {
-    ImGui::SetCurrentContext(ctx);
-
     ImGui::InputText("IP地址", &ip);
     ImGui::InputInt("端口号", &port);
     ImGui::InputInt("检测超时时间(毫秒)", &detect_timeout_ms);

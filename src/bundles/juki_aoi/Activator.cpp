@@ -14,7 +14,7 @@ class Activator : public cppmicroservices::BundleActivator
     {
         common::Log::init(context);
 
-        m_service = std::make_shared<Service>();
+        m_service = std::make_shared<Service>(context);
         m_reg = context.RegisterService<service::ITaskService>(m_service);
     }
     void
