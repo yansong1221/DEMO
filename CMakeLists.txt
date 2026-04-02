@@ -42,8 +42,29 @@ find_package(CppMicroServices REQUIRED CONFIG)
 # 2. 获取第三方库
 include(FetchImGui)
 
-
-add_subdirectory(src/common)
 add_subdirectory(src/service)
+add_subdirectory(src/imgui_extend)
+add_subdirectory(src/common)
+
 add_subdirectory(src/bundles)
 add_subdirectory(src/launcher)
+
+find_package(Qt5 REQUIRED LinguistTools)
+set(TS_FILES
+    ${CMAKE_SOURCE_DIR}/translations/app_zh_CN.ts
+)
+
+# 生成 qm（发布用）
+qt5_add_translation(QM_FILES ${TS_FILES})
+
+# 更新 ts（开发用）
+add_custom_target(update_ts
+    COMMAND lupdate
+        ${CMAKE_SOURCE_DIR}/src
+        -ts ${TS_FILES}
+)
+
+# 可选：编译 ts → qm
+add_custom_target(release_ts
+    COMMAND lrelease ${TS_FILES}
+)

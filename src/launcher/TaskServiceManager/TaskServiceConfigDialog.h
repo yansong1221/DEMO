@@ -1,5 +1,5 @@
 #pragma once
-#include "imgui/ImguiWidget.h"
+#include "ImguiWidget.h"
 #include "service/ITaskService.h"
 #include <QDialog>
 
@@ -24,4 +24,7 @@ class TaskServiceConfigDialog : public QDialog
   public:
     explicit TaskServiceConfigDialog(std::shared_ptr<service::ITaskService::IBasicConfig> config,
                                      QWidget* parent = nullptr);
+
+  protected:
+      virtual void keyPressEvent(QKeyEvent *event) override;
 };

@@ -1,4 +1,5 @@
 #include "Service.h"
+#include "Config.h"
 
 Service::Service(cppmicroservices::BundleContext const& context) : m_aiAgentTracker(std::move(context))
 {
@@ -34,7 +35,7 @@ Service::onThreadEnd()
 std::shared_ptr<service::ITaskService::IBasicConfig>
 Service::createConfig() const
 {
-    return std::make_shared<DemoTaskConfig>();
+    return std::make_shared<Config>();
 }
 void
 Service::requestStop()

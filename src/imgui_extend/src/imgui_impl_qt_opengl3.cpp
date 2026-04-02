@@ -1,5 +1,5 @@
 ﻿#include <QtGui/QOpenGLExtraFunctions>
-#include "imgui_impl_qt_opengl3.h"
+#include "imgui_extend/imgui_impl_qt_opengl3.h"
 
 // Vertex arrays are not supported on ES2/WebGL1 unless Emscripten which uses an extension
 #ifndef IMGUI_IMPL_OPENGL_ES2
@@ -89,7 +89,7 @@ static ImGui_ImplQtOpenGL3* ImGui_ImplQtOpenGL3_GetBackendData()
 static void ImGui_ImplQtOpenGL3_InitPlatformInterface();
 static void ImGui_ImplQtOpenGL3_ShutdownPlatformInterface();
 
-bool ImGui_ImplQtOpenGL3_Init(const char* glsl_version)
+IMGUI_EXTEND_API bool ImGui_ImplQtOpenGL3_Init(const char* glsl_version)
 {
     ImGuiIO& io = ImGui::GetIO();
     IM_ASSERT(io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
@@ -693,7 +693,7 @@ bool ImGui_ImplQtOpenGL3::CheckProgram(GLuint handle, const char* desc)
 }
 
 
-void ImGui_ImplQtOpenGL3_Shutdown()
+IMGUI_EXTEND_API void ImGui_ImplQtOpenGL3_Shutdown()
 {
     ImGui_ImplQtOpenGL3* bd = ImGui_ImplQtOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
@@ -706,7 +706,7 @@ void ImGui_ImplQtOpenGL3_Shutdown()
     IM_DELETE(bd);
 }
 
-void ImGui_ImplQtOpenGL3_NewFrame()
+IMGUI_EXTEND_API void ImGui_ImplQtOpenGL3_NewFrame()
 {
     auto bd = ImGui_ImplQtOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplQtOpenGL3_Init()?");
@@ -716,7 +716,7 @@ void ImGui_ImplQtOpenGL3_NewFrame()
     }
 }
 
-void ImGui_ImplQtOpenGL3_RenderDrawData(ImDrawData* draw_data)
+IMGUI_EXTEND_API void ImGui_ImplQtOpenGL3_RenderDrawData(ImDrawData* draw_data)
 {
     auto bd = ImGui_ImplQtOpenGL3_GetBackendData();
     if (bd) {
@@ -724,7 +724,7 @@ void ImGui_ImplQtOpenGL3_RenderDrawData(ImDrawData* draw_data)
     }
 }
 
-bool ImGui_ImplQtOpenGL3_CreateFontsTexture()
+IMGUI_EXTEND_API bool ImGui_ImplQtOpenGL3_CreateFontsTexture()
 {
     auto bd = ImGui_ImplQtOpenGL3_GetBackendData();
     if (bd) {
@@ -734,7 +734,7 @@ bool ImGui_ImplQtOpenGL3_CreateFontsTexture()
     return false;
 }
 
-void ImGui_ImplQtOpenGL3_DestoryFontsTexture()
+IMGUI_EXTEND_API void ImGui_ImplQtOpenGL3_DestoryFontsTexture()
 {
     auto bd = ImGui_ImplQtOpenGL3_GetBackendData();
     if (bd) {
@@ -743,7 +743,7 @@ void ImGui_ImplQtOpenGL3_DestoryFontsTexture()
     }
 }
 
-bool ImGui_ImplQtOpenGL3_CreateDeviceObjects()
+IMGUI_EXTEND_API bool ImGui_ImplQtOpenGL3_CreateDeviceObjects()
 {
     auto bd = ImGui_ImplQtOpenGL3_GetBackendData();
     if (bd) {
@@ -753,7 +753,7 @@ bool ImGui_ImplQtOpenGL3_CreateDeviceObjects()
     return false;
 }
 
-void ImGui_ImplQtOpenGL3_DestoryDeviceObjects()
+IMGUI_EXTEND_API void ImGui_ImplQtOpenGL3_DestoryDeviceObjects()
 {
     auto bd = ImGui_ImplQtOpenGL3_GetBackendData();
     if (bd) {

@@ -1,12 +1,8 @@
 
-set(MODULE common)
+set(MODULE imgui_extend)
 
-find_package(CppMicroServices REQUIRED)
-find_package(Boost REQUIRED COMPONENTS beast CONFIG)
-find_package(OpenCV REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
 
-include(FetchNFD)
 
 file(GLOB_RECURSE MODULE_SOURCES 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.h 
@@ -18,23 +14,18 @@ ${CMAKE_CURRENT_SOURCE_DIR}/*.json
 ${CMAKE_CURRENT_SOURCE_DIR}/*.rc)
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${MODULE_SOURCES})
 
-add_library(${MODULE} STATIC ${MODULE_SOURCES})
+add_library(${MODULE} SHARED ${MODULE_SOURCES})
 
 target_include_directories(${MODULE} PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(${MODULE} PUBLIC 
-    CppMicroServices
-    usLogService
-    service_interface
-    Boost::beast
     imgui
-    nfd
-    Qt5::Core
-    ${OpenCV_LIBS}
+    PRIVATE Qt5::Core Qt5::Widgets
+    PUBLIC service_interface
 )
-target_compile_definitions(${MODULE} PRIVATE USE_STD_FILESYSTEM)
+target_compile_definitions(${MODULE} PRIVATE IMGUI_EXTEND_EXPORTS)
 
 if(MSVC)
     target_compile_options(${MODULE} PRIVATE /utf-8)

@@ -1,8 +1,9 @@
 #include "ImguiWidget.h"
 
-#include "imgui_impl_qt.h"
-#include "imgui_impl_qt_opengl3.h"
+#include "imgui_extend/imgui_impl_qt.h"
+#include "imgui_extend/imgui_impl_qt_opengl3.h"
 #include <QApplication>
+#include <QDebug>
 #include <QScreen>
 #include <QTimer>
 #include <filesystem>

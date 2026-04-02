@@ -47,7 +47,7 @@ if(NOT TARGET imgui)
         ${IMGUI_DIR}/misc/cpp
     )
     target_compile_definitions(imgui PRIVATE IMGUI_EXPORTS )
-    target_compile_definitions(imgui PUBLIC IMGUI_USER_CONFIG="imgui_export.h")
+    target_compile_definitions(imgui PUBLIC IMGUI_DEFINE_MATH_OPERATORS IMGUI_USER_CONFIG="imgui_export.h")
     
     target_link_libraries(imgui PRIVATE Freetype::Freetype)
 
