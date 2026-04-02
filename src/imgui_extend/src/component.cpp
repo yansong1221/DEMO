@@ -1,6 +1,7 @@
 #include "imgui_extend/component.h"
 #include "ImGuiFileDialog.h"
 #include <QCoreApplication>
+#include <QFileDialog>
 
 namespace ImGui::extend
 {
@@ -84,29 +85,34 @@ namespace ImGui::extend
         }
         ImGui::SameLine();
 
-        std::string key = std::format("0x{:x}", reinterpret_cast<std::uintptr_t>(directory));
-        // std::string key = std::format("{:p}", directory);
-        if (ImGui::Button(detail::translate("Select").c_str()))
+        if (ImGui::Button(QCoreApplication::translate("common::ui::component", "Select").toUtf8()))
         {
-            ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+            // auto dlg = new QFileDialog();
+            // dlg->setAttribute(Qt::WA_DeleteOnClose);
+            // QObject::connect(dlg, &QFileDialog::fileSelected, dlg, [dlg](QString const& file) { modified = true; });
+            // dlg->open();
 
+            // QString file = QFileDialog::getOpenFileName(nullptr, "Open File", "", "All Files (*.*)");
+
+            // ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+
+            //// IGFD::FileDialogConfig config;
+            //// config.path = IGFD::FileDialog::Instance()->GetDrivesList();
             // IGFD::FileDialogConfig config;
-            // config.path = IGFD::FileDialog::Instance()->GetDrivesList();
-            IGFD::FileDialogConfig config;
-            config.path = ".";
-            ImGuiFileDialog::Instance()->OpenDialog(key, "Choose File", nullptr, config);
+            // config.path = ".";
+            // ImGuiFileDialog::Instance()->OpenDialog(key, "Choose File", nullptr, config);
         }
-        if (ImGuiFileDialog::Instance()->Display(key))
-        {
-            if (ImGuiFileDialog::Instance()->IsOk())
-            {
-                *directory = ImGuiFileDialog::Instance()->GetCurrentPath();
-                modified = true;
-            }
+        // if (ImGuiFileDialog::Instance()->Display(key))
+        //{
+        //     if (ImGuiFileDialog::Instance()->IsOk())
+        //     {
+        //         *directory = ImGuiFileDialog::Instance()->GetCurrentPath();
+        //         modified = true;
+        //     }
 
-            // close
-           ImGuiFileDialog::Instance()->Close();
-        }
+        //    // close
+        //   ImGuiFileDialog::Instance()->Close();
+        //}
 
         ImGui::EndGroup();
 
@@ -163,6 +169,110 @@ namespace ImGui::extend
         ImGui::PopStyleColor(3);
 
         return clicked;
+    }
+
+    class FileDialogImpl
+    {
+      public:
+        QFileDialog dialog;
+        QString selectedDirectory;
+        bool completed = false;
+    };
+
+    FileDialog::FileDialog() : impl_(new FileDialogImpl())
+    {
+        impl_->dialog.setFileMode(QFileDialog::Directory);
+        impl_->dialog.setOption(QFileDialog::Option::ShowDirsOnly);
+
+        QObject::connect(&impl_->dialog,
+                         &QFileDialog::fileSelected,
+                         &impl_->dialog,
+                         [this](QString const& file)
+                         {
+                             impl_->selectedDirectory = file;
+                             impl_->completed = true;
+                         });
+    }
+    FileDialog::~FileDialog() {}
+
+    void
+    FileDialog::open()
+    {
+        impl_->dialog.open();
+    }
+
+    std::string
+    FileDialog::selectedDirectory() const
+    {
+        return impl_->selectedDirectory.toStdString();
+    }
+
+    bool
+    FileDialog::display()
+    {
+        if (impl_->completed)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    void
+    FileDialog::close()
+    {
+        impl_->completed = false;
+        impl_->dialog.close();
+    }
+
+    bool
+    FileDialog::InputDirectory(std::string const& key, std::string const& label, std::string* directory)
+    {
+        bool modified = false;
+
+        ImGui::PushID(label.c_str());
+
+        ImGui::BeginGroup();
+
+        ImGui::TextUnformatted(label.c_str());
+        if (ImGui::InputText("##", directory))
+        {
+            modified = true;
+        }
+        ImGui::SameLine();
+
+        if (ImGui::Button(QCoreApplication::translate("common::ui::component", "Select").toUtf8()))
+        {
+            // auto dlg = new QFileDialog();
+            // dlg->setAttribute(Qt::WA_DeleteOnClose);
+            // QObject::connect(dlg, &QFileDialog::fileSelected, dlg, [dlg](QString const& file) { modified = true; });
+            // dlg->open();
+
+            // QString file = QFileDialog::getOpenFileName(nullptr, "Open File", "", "All Files (*.*)");
+
+            // ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+
+            //// IGFD::FileDialogConfig config;
+            //// config.path = IGFD::FileDialog::Instance()->GetDrivesList();
+            // IGFD::FileDialogConfig config;
+            // config.path = ".";
+            // ImGuiFileDialog::Instance()->OpenDialog(key, "Choose File", nullptr, config);
+        }
+        // if (ImGuiFileDialog::Instance()->Display(key))
+        //{
+        //     if (ImGuiFileDialog::Instance()->IsOk())
+        //     {
+        //         *directory = ImGuiFileDialog::Instance()->GetCurrentPath();
+        //         modified = true;
+        //     }
+
+        //    // close
+        //   ImGuiFileDialog::Instance()->Close();
+        //}
+
+        ImGui::EndGroup();
+
+        ImGui::PopID();
+        return modified;
     }
 
 } // namespace ImGui::extend

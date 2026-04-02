@@ -54,11 +54,11 @@ SetupFontWithQt()
 ImguiWidget::ImguiWidget(QWidget* parent /*= Q_NULLPTR*/, Qt::WindowFlags f /*= Qt::WindowFlags()*/)
     : QOpenGLWidget(parent, f)
 {
-    auto timer = new QTimer(this);
-    QObject::connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-    timer->setInterval(16);
-    timer->start();
-};
+    /*   auto timer = new QTimer(this);
+       QObject::connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+       timer->setInterval(16);
+       timer->start();*/
+}
 
 ImguiWidget::~ImguiWidget()
 {
@@ -164,4 +164,6 @@ ImguiWidget::paintGL()
 
     ImGui::Render();
     ImGui_ImplQtOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    QTimer::singleShot(16, this, SLOT(update()));
 }

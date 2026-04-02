@@ -38,4 +38,24 @@ namespace ImGui::extend
     }
     IMGUI_EXTEND_API bool ToggleButton(char const* label, bool* v);
 
+    class FileDialogImpl;
+    class IMGUI_EXTEND_API FileDialog
+    {
+      public:
+        FileDialog();
+        ~FileDialog();
+
+      public:
+        bool InputDirectory(std::string const& key, std::string const& label, std::string* directory);
+
+      public:
+        void open();
+        bool display();
+        void close();
+        std::string selectedDirectory() const;
+
+      private:
+        std::unique_ptr<FileDialogImpl> impl_;
+    };
+
 } // namespace ImGui::extend
