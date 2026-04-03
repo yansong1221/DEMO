@@ -14,15 +14,13 @@ class Activator : public cppmicroservices::BundleActivator
     {
         common::Log::init(context);
 
-        m_service = std::make_shared<Service>();
+        m_service = std::make_shared<Service>(context);
         m_regTaskService = context.RegisterService<service::ITaskService>(m_service);
-        m_regAIAgentService = context.RegisterService<service::IAIAgentService>(m_service);
     }
     void
     Stop(cppmicroservices::BundleContext context) override
     {
         m_regTaskService.Unregister();
-        m_regAIAgentService.Unregister();
         m_service.reset();
 
         common::Log::reset();
@@ -31,7 +29,6 @@ class Activator : public cppmicroservices::BundleActivator
   private:
     std::shared_ptr<Service> m_service;
     cppmicroservices::ServiceRegistration<service::ITaskService> m_regTaskService;
-    cppmicroservices::ServiceRegistration<service::IAIAgentService> m_regAIAgentService;
 };
 
 CPPMICROSERVICES_EXPORT_BUNDLE_ACTIVATOR(Activator)

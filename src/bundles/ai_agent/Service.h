@@ -1,4 +1,5 @@
 #pragma once
+#include "cppmicroservices/BundleContext.h"
 #include "imgui.h"
 #include "service/IAIAgentService.h"
 #include "service/ITaskService.h"
@@ -13,11 +14,12 @@ class Service
     , public std::enable_shared_from_this<Service>
 {
   public:
-    Service();
+    Service(cppmicroservices::BundleContext const& context);
 
   public:
     // ITaskService 接口实现
     std::string name() const override;
+    std::string displayName() const override;
 
     bool onThreadRun() override;
 
@@ -39,6 +41,9 @@ class Service
         std::optional<std::chrono::milliseconds> const& timeout_seconds);
 
   private:
+    cppmicroservices::BundleContext bundleContext_;
+    cppmicroservices::ServiceRegistration<service::IAIAgentService> m_regAIAgentService;
+
     std::shared_ptr<Config> selfConfig_;
     std::unique_ptr<boost::asio::io_context> ioc_;
     std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> workGuard_;

@@ -1,11 +1,11 @@
 #include "Config.h"
 
-Config::Config() : m_aoiConfigs_([]() { return std::make_shared<AoiConfig>(); }) {}
+Config::Config() : aoiConfigs([]() { return std::make_shared<AoiConfig>(); }) {}
 
 std::vector<ImGui::extend::GroupBasicConfig::Item>
 Config::prepareItems()
 {
     return {
-        { "aoi_configs", &m_aoiConfigs_ },
+        { "aoi_configs", &aoiConfigs },
     };
 }

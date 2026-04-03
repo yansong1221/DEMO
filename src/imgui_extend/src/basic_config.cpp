@@ -13,7 +13,7 @@ namespace ImGui::extend
         {
             auto& info = m_items[i];
             auto d_name = info->displayName();
-            auto label = QCoreApplication::translate("common::ui", "Config%1").arg(i + 1);
+            auto label = QCoreApplication::translate("imgui::extend", "Config%1").arg(i + 1);
 
             ImGui::PushID(i);
 
@@ -30,7 +30,7 @@ namespace ImGui::extend
                 ImGui::Separator();
 
                 if (ImGui::extend::DeteleButton(
-                        QCoreApplication::translate("common::ui", "Delete-[%1]").arg(label).toUtf8()))
+                        QCoreApplication::translate("imgui::extend", "Delete-[%1]").arg(label).toUtf8()))
                 {
                     m_items.erase(m_items.begin() + i);
                     i--;
@@ -40,7 +40,7 @@ namespace ImGui::extend
             ImGui::Separator();
             ImGui::PopID();
         }
-        if (ImGui::Button(QCoreApplication::translate("common::ui", "Add").toUtf8()))
+        if (ImGui::Button(QCoreApplication::translate("imgui::extend", "Add").toUtf8()))
         {
             m_items.push_back(m_createFunc());
         }

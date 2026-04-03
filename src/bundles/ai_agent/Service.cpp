@@ -36,14 +36,18 @@ namespace detail
     //}
 } // namespace detail
 
-Service::Service() {}
+Service::Service(cppmicroservices::BundleContext const& context) : bundleContext_(context) {}
 
 std::string
 Service::name() const
 {
     return "ai-agent";
 }
-
+std::string
+Service::displayName() const
+{
+    return "ai-agent";
+}
 bool
 Service::onThreadRun()
 {
@@ -61,12 +65,16 @@ Service::onThreadStart(std::shared_ptr<IBasicConfig> config)
         boost::asio::make_work_guard(*ioc_));
     clientPool_
         = std::make_shared<httplib::client::http_client_pool>(ioc_->get_executor(), selfConfig_->ip, selfConfig_->port);
+
+    m_regAIAgentService = bundleContext_.RegisterService<service::IAIAgentService>(shared_from_this());
     return true;
 }
 
 void
 Service::onThreadEnd()
 {
+    m_regAIAgentService.Unregister();
+
     ioc_->stop();
     workGuard_.reset();
     selfConfig_.reset();
@@ -104,13 +112,13 @@ Service::detect(std::shared_ptr<service::IAIAgentService::IDetectPanel> panel)
 boost::asio::awaitable<void>
 Service::coroDetect(std::shared_ptr<IDetectPanel> panel)
 {
-    common::Log::debug("LINE: {} STATION: {} NAME: {} SN: {} 开始发送检测信息给AI: {}:{}",
-                       panel->line(),
-                       panel->station(),
-                       panel->name(),
-                       panel->sn(),
-                       selfConfig_->ip,
-                       selfConfig_->port);
+    common::Log::info("开始发送检测信息 LINE: {} STATION: {} NAME: {} SN: {} 给AI: [{}:{}]",
+                      panel->line(),
+                      panel->station(),
+                      panel->name(),
+                      panel->sn(),
+                      selfConfig_->ip,
+                      selfConfig_->port);
     try
     {
         auto panelImpl = std::static_pointer_cast<DetectPanelImpl>(panel);
@@ -126,7 +134,6 @@ Service::coroDetect(std::shared_ptr<IDetectPanel> panel)
                               panelImpl->name(),
                               panelImpl->sn(),
                               cli->host(),
-                              cli->port(),
                               common::misc::to_u8string(response.error().message()));
             co_return;
         }
@@ -144,13 +151,13 @@ Service::coroDetect(std::shared_ptr<IDetectPanel> panel)
                           panel->sn(),
                           common::misc::to_u8string(e.what()));
     }
-    common::Log::debug("LINE: {} STATION: {} NAME: {} SN: {} 发送检测信息给AI完成: {}:{}",
-                       panel->line(),
-                       panel->station(),
-                       panel->name(),
-                       panel->sn(),
-                       selfConfig_->ip,
-                       selfConfig_->port);
+    common::Log::info("结束发送检测信息 LINE: {} STATION: {} NAME: {} SN: {} 给AI: [{}:{}]",
+                      panel->line(),
+                      panel->station(),
+                      panel->name(),
+                      panel->sn(),
+                      selfConfig_->ip,
+                      selfConfig_->port);
     co_return;
 }
 

@@ -2,10 +2,13 @@
 
 #include <QApplication>
 #include <cppmicroservices/FrameworkFactory.h>
+#include <windows.h>
 
 int
 main(int argc, char** argv)
 {
+     SetConsoleOutputCP(CP_UTF8);
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);

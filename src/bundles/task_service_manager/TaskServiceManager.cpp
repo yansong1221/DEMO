@@ -1,10 +1,134 @@
 #include "TaskServiceManager.h"
 #include "cppmicroservices/ServiceEvent.h"
 
+TaskServiceController::TaskServiceController(cppmicroservices::ServiceReference<service::ITaskService> ref,
+                                             std::shared_ptr<service::ITaskService> service)
+    : m_ref(ref)
+    , m_service(std::move(service))
+{
+}
+
+TaskServiceController::~TaskServiceController() { stop(); }
+
+std::string
+TaskServiceController::symbolicName() const
+{
+    try
+    {
+        auto b = m_ref.GetBundle();
+        return b ? b.GetSymbolicName() : std::string();
+    }
+    catch (...)
+    {
+        return std::string();
+    }
+}
+
+std::string
+TaskServiceController::serviceName() const
+{
+    return m_service->name();
+}
+
+service::ITaskServiceManager::ITaskServiceController::TaskServiceStatus
+TaskServiceController::status() const
+{
+    return isRunning() ? TaskServiceStatus::Running : TaskServiceStatus::Stopped;
+}
+
+std::shared_ptr<service::ITaskService::IBasicConfig>
+TaskServiceController::createConfig() const
+{
+    return m_service->createConfig();
+}
+
+void
+TaskServiceController::setStatusCallback(TaskServiceStatusCallback callback)
+{
+    std::lock_guard lock(m_mutex);
+    m_statusCallback = std::move(callback);
+}
+
+bool
+TaskServiceController::start(std::shared_ptr<service::ITaskService::IBasicConfig> config)
+{
+    if (isRunning())
+    {
+        return true;
+    }
+    {
+        std::lock_guard lock(m_mutex);
+        m_config = config;
+    }
+    return Thread::startThread();
+}
+
+void
+TaskServiceController::stop()
+{
+    if (isRunning())
+    {
+        m_service->requestStop();
+        Thread::stopThread();
+    }
+}
+
+bool
+TaskServiceController::isSelf(cppmicroservices::ServiceReference<service::ITaskService> const& reference,
+                              std::shared_ptr<service::ITaskService> const& service) const
+{
+    return m_ref == reference && m_service == service;
+}
+
+std::string
+TaskServiceController::displayServiceName() const
+{
+    return m_service->displayName();
+}
+
+bool
+TaskServiceController::onThreadStart()
+{
+    if (!m_service->onThreadStart(m_config))
+    {
+        return false;
+    }
+
+    std::lock_guard lock(m_mutex);
+    if (m_statusCallback)
+    {
+        m_statusCallback(TaskServiceStatus::Running);
+    }
+
+    return true;
+}
+
+bool
+TaskServiceController::onThreadRun()
+{
+    return m_service->onThreadRun();
+}
+
+void
+TaskServiceController::onThreadEnd()
+{
+    m_service->onThreadEnd();
+
+    std::lock_guard lock(m_mutex);
+    if (m_statusCallback)
+    {
+        m_statusCallback(TaskServiceStatus::Stopped);
+    }
+
+    m_config.reset();
+}
+
 TaskServiceManager::TaskServiceManager(cppmicroservices::BundleContext context)
     : m_context(context)
     , m_Tracker(context, this)
-{ m_Tracker.Open(); }
+{
+    m_Tracker.Open();
+}
 
 TaskServiceManager::~TaskServiceManager()
 {

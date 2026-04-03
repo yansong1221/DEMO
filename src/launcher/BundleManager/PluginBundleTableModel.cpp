@@ -559,7 +559,7 @@ PluginBundleTableModel::stopBundleRow(int row)
             return;
         }
         b.Stop();
-        b.Uninstall();
+        b.Uninstall(true);
         common::Log::info(tr("[停止] 已请求停止：%1").arg(QString::fromUtf8(sym.c_str())).toStdString());
     }
     catch (std::exception const& e)

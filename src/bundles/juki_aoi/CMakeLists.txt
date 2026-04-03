@@ -1,5 +1,7 @@
 
 
+find_package(pugixml CONFIG REQUIRED)
+
 file(GLOB_RECURSE MODULE_SOURCES 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.h 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp 
@@ -13,5 +15,5 @@ us_add_bundle(
     TARGET juki_aoi
     SOURCES ${MODULE_SOURCES}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    LINK_LIBRARIES imgui imgui_extend common
+    LINK_LIBRARIES imgui imgui_extend common pugixml::pugixml
 )

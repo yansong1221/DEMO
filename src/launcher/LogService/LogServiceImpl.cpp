@@ -7,6 +7,7 @@
 #include <QMetaObject>
 
 #include <spdlog/sinks/daily_file_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
 
 // LoggerImpl implementation
 
@@ -20,7 +21,7 @@ LoggerImpl::LoggerImpl(std::string name, cppmicroservices::Bundle bundle, LogSer
 }
 
 void
-LoggerImpl::log(int level,
+LoggerImpl::log(spdlog::level::level_enum level,
                 std::string const& message,
                 cppmicroservices::ServiceReferenceBase const* sr,
                 std::exception_ptr const* ex)
@@ -53,7 +54,7 @@ LoggerImpl::log(int level,
 }
 
 void
-LoggerImpl::log(int level, std::string const& format, std::string const& arg)
+LoggerImpl::log(spdlog::level::level_enum level, std::string const& format, std::string const& arg)
 {
     QString msg = QString::fromStdString(format).arg(QString::fromStdString(arg));
     QString bundleName = m_bundle ? QString::fromStdString(m_bundle.GetSymbolicName()) : QString::fromStdString(m_name);
@@ -65,7 +66,10 @@ LoggerImpl::log(int level, std::string const& format, std::string const& arg)
 }
 
 void
-LoggerImpl::log(int level, std::string const& format, std::string const& arg1, std::string const& arg2)
+LoggerImpl::log(spdlog::level::level_enum level,
+                std::string const& format,
+                std::string const& arg1,
+                std::string const& arg2)
 {
     QString msg = QString::fromStdString(format).arg(QString::fromStdString(arg1), QString::fromStdString(arg2));
     QString bundleName = m_bundle ? QString::fromStdString(m_bundle.GetSymbolicName()) : QString::fromStdString(m_name);
@@ -102,214 +106,235 @@ LoggerImpl::formatException(std::exception_ptr const& ex)
 void
 LoggerImpl::audit(std::string const& message)
 {
-    log(5, message);
+    log(spdlog::level::level_enum::critical, message);
 }
 void
 LoggerImpl::audit(std::string const& format, std::string const& arg)
 {
-    log(5, format, arg);
+    log(spdlog::level::level_enum::critical, format, arg);
 }
 void
 LoggerImpl::audit(std::string const& format, std::string const& arg1, std::string const& arg2)
 {
-    log(5, format, arg1, arg2);
+    log(spdlog::level::level_enum::critical, format, arg1, arg2);
 }
 void
 LoggerImpl::audit(std::string const& message, std::exception_ptr const ex)
 {
-    log(5, message, nullptr, &ex);
+    log(spdlog::level::level_enum::critical, message, nullptr, &ex);
 }
 void
 LoggerImpl::audit(std::string const& message, cppmicroservices::ServiceReferenceBase const& sr)
 {
-    log(5, message, &sr);
+    log(spdlog::level::level_enum::critical, message, &sr);
 }
 void
 LoggerImpl::audit(std::string const& message,
                   cppmicroservices::ServiceReferenceBase const& sr,
                   std::exception_ptr const ex)
 {
-    log(5, message, &sr, &ex);
+    log(spdlog::level::level_enum::critical, message, &sr, &ex);
 }
 
 // Debug methods
 void
 LoggerImpl::debug(std::string const& message)
 {
-    log(3, message);
+    log(spdlog::level::level_enum::debug, message);
 }
 void
 LoggerImpl::debug(std::string const& format, std::string const& arg)
 {
-    log(3, format, arg);
+    log(spdlog::level::level_enum::debug, format, arg);
 }
 void
 LoggerImpl::debug(std::string const& format, std::string const& arg1, std::string const& arg2)
 {
-    log(3, format, arg1, arg2);
+    log(spdlog::level::level_enum::debug, format, arg1, arg2);
 }
 void
 LoggerImpl::debug(std::string const& message, std::exception_ptr const ex)
 {
-    log(3, message, nullptr, &ex);
+    log(spdlog::level::level_enum::debug, message, nullptr, &ex);
 }
 void
 LoggerImpl::debug(std::string const& message, cppmicroservices::ServiceReferenceBase const& sr)
 {
-    log(3, message, &sr);
+    log(spdlog::level::level_enum::debug, message, &sr);
 }
 void
 LoggerImpl::debug(std::string const& message,
                   cppmicroservices::ServiceReferenceBase const& sr,
                   std::exception_ptr const ex)
 {
-    log(3, message, &sr, &ex);
+    log(spdlog::level::level_enum::debug, message, &sr, &ex);
 }
 
 // Error methods
 void
 LoggerImpl::error(std::string const& message)
 {
-    log(0, message);
+    log(spdlog::level::level_enum::err, message);
 }
 void
 LoggerImpl::error(std::string const& format, std::string const& arg)
 {
-    log(0, format, arg);
+    log(spdlog::level::level_enum::err, format, arg);
 }
 void
 LoggerImpl::error(std::string const& format, std::string const& arg1, std::string const& arg2)
 {
-    log(0, format, arg1, arg2);
+    log(spdlog::level::level_enum::err, format, arg1, arg2);
 }
 void
 LoggerImpl::error(std::string const& message, std::exception_ptr const ex)
 {
-    log(0, message, nullptr, &ex);
+    log(spdlog::level::level_enum::err, message, nullptr, &ex);
 }
 void
 LoggerImpl::error(std::string const& message, cppmicroservices::ServiceReferenceBase const& sr)
 {
-    log(0, message, &sr);
+    log(spdlog::level::level_enum::err, message, &sr);
 }
 void
 LoggerImpl::error(std::string const& message,
                   cppmicroservices::ServiceReferenceBase const& sr,
                   std::exception_ptr const ex)
 {
-    log(0, message, &sr, &ex);
+    log(spdlog::level::level_enum::err, message, &sr, &ex);
 }
 
 // Info methods
 void
 LoggerImpl::info(std::string const& message)
 {
-    log(2, message);
+    log(spdlog::level::level_enum::info, message);
 }
 void
 LoggerImpl::info(std::string const& format, std::string const& arg)
 {
-    log(2, format, arg);
+    log(spdlog::level::level_enum::info, format, arg);
 }
 void
 LoggerImpl::info(std::string const& format, std::string const& arg1, std::string const& arg2)
 {
-    log(2, format, arg1, arg2);
+    log(spdlog::level::level_enum::info, format, arg1, arg2);
 }
 void
 LoggerImpl::info(std::string const& message, std::exception_ptr const ex)
 {
-    log(2, message, nullptr, &ex);
+    log(spdlog::level::level_enum::info, message, nullptr, &ex);
 }
 void
 LoggerImpl::info(std::string const& message, cppmicroservices::ServiceReferenceBase const& sr)
 {
-    log(2, message, &sr);
+    log(spdlog::level::level_enum::info, message, &sr);
 }
 void
 LoggerImpl::info(std::string const& message,
                  cppmicroservices::ServiceReferenceBase const& sr,
                  std::exception_ptr const ex)
 {
-    log(2, message, &sr, &ex);
+    log(spdlog::level::level_enum::info, message, &sr, &ex);
 }
 
 // Trace methods
 void
 LoggerImpl::trace(std::string const& message)
 {
-    log(4, message);
+    log(spdlog::level::level_enum::trace, message);
 }
 void
 LoggerImpl::trace(std::string const& format, std::string const& arg)
 {
-    log(4, format, arg);
+    log(spdlog::level::level_enum::trace, format, arg);
 }
 void
 LoggerImpl::trace(std::string const& format, std::string const& arg1, std::string const& arg2)
 {
-    log(4, format, arg1, arg2);
+    log(spdlog::level::level_enum::trace, format, arg1, arg2);
 }
 void
 LoggerImpl::trace(std::string const& message, std::exception_ptr const ex)
 {
-    log(4, message, nullptr, &ex);
+    log(spdlog::level::level_enum::trace, message, nullptr, &ex);
 }
 void
 LoggerImpl::trace(std::string const& message, cppmicroservices::ServiceReferenceBase const& sr)
 {
-    log(4, message, &sr);
+    log(spdlog::level::level_enum::trace, message, &sr);
 }
 void
 LoggerImpl::trace(std::string const& message,
                   cppmicroservices::ServiceReferenceBase const& sr,
                   std::exception_ptr const ex)
 {
-    log(4, message, &sr, &ex);
+    log(spdlog::level::level_enum::trace, message, &sr, &ex);
 }
 
 // Warn methods
 void
 LoggerImpl::warn(std::string const& message)
 {
-    log(1, message);
+    log(spdlog::level::level_enum::warn, message);
 }
 void
 LoggerImpl::warn(std::string const& format, std::string const& arg)
 {
-    log(1, format, arg);
+    log(spdlog::level::level_enum::warn, format, arg);
 }
 void
 LoggerImpl::warn(std::string const& format, std::string const& arg1, std::string const& arg2)
 {
-    log(1, format, arg1, arg2);
+    log(spdlog::level::level_enum::warn, format, arg1, arg2);
 }
 void
 LoggerImpl::warn(std::string const& message, std::exception_ptr const ex)
 {
-    log(1, message, nullptr, &ex);
+    log(spdlog::level::level_enum::warn, message, nullptr, &ex);
 }
 void
 LoggerImpl::warn(std::string const& message, cppmicroservices::ServiceReferenceBase const& sr)
 {
-    log(1, message, &sr);
+    log(spdlog::level::level_enum::warn, message, &sr);
 }
 void
 LoggerImpl::warn(std::string const& message,
                  cppmicroservices::ServiceReferenceBase const& sr,
                  std::exception_ptr const ex)
 {
-    log(1, message, &sr, &ex);
+    log(spdlog::level::level_enum::warn, message, &sr, &ex);
 }
 
 // LogServiceImpl implementation
 
-LogServiceImpl::LogServiceImpl() { initSpdlog(); }
-
-LogServiceImpl::~LogServiceImpl() { spdlog::shutdown(); }
+QtLogSink::QtLogSink(LogWidget* widget /*= nullptr*/) : widget_(widget) {}
 
 void
-LogServiceImpl::initSpdlog()
+QtLogSink::sink_it_(spdlog::details::log_msg const& msg)
+{
+    if (!widget_)
+    {
+        return;
+    }
+
+    spdlog::memory_buf_t formatted;
+    QtLogSink::formatter_->format(msg, formatted);
+    auto message = QString::fromUtf8(formatted.data(), formatted.size());
+
+    QMetaObject::invokeMethod(widget_, "");
+    QMetaObject::invokeMethod(
+        widget_,
+        [this, level = msg.level, message = std::move(message)]() { widget_->addLog(level, message); },
+        Qt::QueuedConnection);
+}
+
+void
+QtLogSink::flush_()
+{
+}
+
+LogServiceImpl::LogServiceImpl(LogWidget* widget) : m_logWidget(widget)
 {
     // 获取日志目录（应用程序目录下的 logs）
     QString logDir = QCoreApplication::applicationDirPath() + "/logs";
@@ -320,14 +345,27 @@ LogServiceImpl::initSpdlog()
     }
     try
     {
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_level(spdlog::level::trace);
+
+        auto ui_sink = std::make_shared<QtLogSink>(m_logWidget);
+        ui_sink->set_level(spdlog::level::trace);
+        //QObject::connect(ui_sink.get(),
+        //                 &QtLogSink::messageReceived,
+        //                 m_logWidget,
+        //                 &LogWidget::addLog,
+        //                 Qt::QueuedConnection);
+
         auto file_name_pattern = fmt::format("{}\\%Y-%m-%d.log", logDir.toStdString());
 
         auto file_sink = std::make_shared<spdlog::sinks::daily_file_format_sink_mt>(file_name_pattern, 0, 0, false, 30);
+        file_sink->set_level(spdlog::level::trace);
 
-        spdlog::sinks_init_list sink_list = { file_sink };
-        m_fileLogger = std::make_shared<spdlog::logger>("file_logger", sink_list);
-        m_fileLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
-        m_fileLogger->set_level(spdlog::level::info);
+        spdlog::sinks_init_list sink_list = { file_sink, ui_sink, console_sink };
+        m_logger = std::make_shared<spdlog::logger>("logger", sink_list);
+        m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+        m_logger->set_level(spdlog::level::info);
+        m_logger->flush_on(spdlog::level::info);
 
         // m_fileLogger->set_pattern("[%Y-%m-%d %H:%M:%S] [%^%l%$] [%n] %v");
         // m_fileLogger->set_level(spdlog::level::trace);
@@ -336,19 +374,9 @@ LogServiceImpl::initSpdlog()
     {
         spdlog::error("File logger init failed: {}", ex.what());
     }
-
-    // 注意：console logger 会在 setLogWidget 中创建
 }
 
-void
-LogServiceImpl::setLogWidget(LogWidget* widget)
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    m_logWidget = widget;
-
-    // 如果 LogWidget 内部有 QTextEdit，可以创建 qt sink
-    // 这里暂时只使用文件 logger
-}
+LogServiceImpl::~LogServiceImpl() { spdlog::shutdown(); }
 
 LogWidget*
 LogServiceImpl::getLogWidget() const
@@ -374,11 +402,10 @@ LogServiceImpl::getLogger(cppmicroservices::Bundle const& bundle, std::string co
 void
 LogServiceImpl::Log(cppmicroservices::logservice::SeverityLevel level, std::string const& message)
 {
-    int lvl = severityToLevel(level);
     QString bundleName = "system";
     QString msg = QString::fromStdString(message);
 
-    addLogEntry(lvl, bundleName, msg);
+    addLogEntry(level, bundleName, msg);
 }
 
 void
@@ -386,7 +413,6 @@ LogServiceImpl::Log(cppmicroservices::logservice::SeverityLevel level,
                     std::string const& message,
                     std::exception_ptr const ex)
 {
-    int lvl = severityToLevel(level);
     QString bundleName = "system";
     QString msg = QString::fromStdString(message);
 
@@ -406,7 +432,7 @@ LogServiceImpl::Log(cppmicroservices::logservice::SeverityLevel level,
         }
     }
 
-    addLogEntry(lvl, bundleName, msg);
+    addLogEntry(level, bundleName, msg);
 }
 
 void
@@ -414,11 +440,10 @@ LogServiceImpl::Log(cppmicroservices::ServiceReferenceBase const& sr,
                     cppmicroservices::logservice::SeverityLevel level,
                     std::string const& message)
 {
-    int lvl = severityToLevel(level);
     QString bundleName = sr.GetBundle() ? QString::fromStdString(sr.GetBundle().GetSymbolicName()) : "unknown";
     QString msg = QString::fromStdString(message);
 
-    addLogEntry(lvl, bundleName, msg);
+    addLogEntry(level, bundleName, msg);
 }
 
 void
@@ -427,7 +452,6 @@ LogServiceImpl::Log(cppmicroservices::ServiceReferenceBase const& sr,
                     std::string const& message,
                     std::exception_ptr const ex)
 {
-    int lvl = severityToLevel(level);
     QString bundleName = sr.GetBundle() ? QString::fromStdString(sr.GetBundle().GetSymbolicName()) : "unknown";
     QString msg = QString::fromStdString(message);
 
@@ -447,48 +471,51 @@ LogServiceImpl::Log(cppmicroservices::ServiceReferenceBase const& sr,
         }
     }
 
-    addLogEntry(lvl, bundleName, msg);
+    addLogEntry(level, bundleName, msg);
 }
 
 void
-LogServiceImpl::addLogEntry(int level, QString const& bundleName, QString const& message)
+LogServiceImpl::addLogEntry(spdlog::level::level_enum level, QString const& bundleName, QString const& message)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    // std::lock_guard<std::mutex> lock(m_mutex);
 
-    // UI 更新
-    if (m_logWidget)
-    {
-        QMetaObject::invokeMethod(
-            m_logWidget,
-            [this, level, bundleName, message]() { m_logWidget->addLog(level, bundleName, message); },
-            Qt::QueuedConnection);
-    }
+    //// UI 更新
+    // if (m_logWidget)
+    //{
+    //     QMetaObject::invokeMethod(
+    //         m_logWidget,
+    //         [this, level, bundleName, message]() { m_logWidget->addLog(level, bundleName, message); },
+    //         Qt::QueuedConnection);
+    // }
 
     // spdlog 输出（自动异步，线程安全）
-    if (m_fileLogger)
-    {
-        spdlog::source_loc source {};
-        spdlog::level::level_enum spdLevel = static_cast<spdlog::level::level_enum>(level);
 
-        m_fileLogger->log(source, spdLevel, "[{}] {}", bundleName.toStdString(), message.toStdString());
-    }
+    m_logger->log(level, "[{}] {}", bundleName.toStdString(), message.toStdString());
 }
 
-int
-LogServiceImpl::severityToLevel(cppmicroservices::logservice::SeverityLevel level) const
+void
+LogServiceImpl::addLogEntry(cppmicroservices::logservice::SeverityLevel level,
+                            QString const& bundleName,
+                            QString const& message)
+{
+    addLogEntry(severityToLevel(level), bundleName, message);
+}
+
+spdlog::level::level_enum
+LogServiceImpl::severityToLevel(cppmicroservices::logservice::SeverityLevel level)
 {
     switch (level)
     {
         case cppmicroservices::logservice::SeverityLevel::LOG_ERROR:
-            return 0;
+            return spdlog::level::level_enum::err;
         case cppmicroservices::logservice::SeverityLevel::LOG_WARNING:
-            return 1;
+            return spdlog::level::level_enum::warn;
         case cppmicroservices::logservice::SeverityLevel::LOG_INFO:
-            return 2;
+            return spdlog::level::level_enum::info;
         case cppmicroservices::logservice::SeverityLevel::LOG_DEBUG:
-            return 3;
+            return spdlog::level::level_enum::debug;
         default:
-            return 2;
+            return spdlog::level::level_enum::info;
     }
 }
 

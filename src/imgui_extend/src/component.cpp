@@ -32,7 +32,7 @@ namespace ImGui::extend
     DeteleButton(char const* label /*= "删除"*/, bool enabled /*= true*/, ImVec2 const& size /*= ImVec2(0, 0)*/)
     {
         auto displayLabel
-            = label ? QByteArray(label) : QCoreApplication::translate("common::ui::component", "Delete").toUtf8();
+            = label ? QByteArray(label) : QCoreApplication::translate("imgui::extend", "Delete").toUtf8();
 
         if (!enabled)
         {
@@ -119,7 +119,7 @@ namespace ImGui::extend
         }
         ImGui::SameLine();
 
-        if (ImGui::Button(QCoreApplication::translate("common::ui::component", "Select").toUtf8()))
+        if (ImGui::Button(QCoreApplication::translate("imgui::extend", "Select").toUtf8()))
         {
             impl_->open(key);
         }

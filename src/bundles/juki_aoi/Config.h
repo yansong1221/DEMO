@@ -1,7 +1,7 @@
 #pragma once
 #include "common/misc.h"
-#include "imgui_extend/component.h"
 #include "imgui_extend/basic_config.h"
+#include "imgui_extend/component.h"
 #include "service/ITaskService.h"
 #include <filesystem>
 
@@ -14,7 +14,7 @@ class Config : public ImGui::extend::GroupBasicConfig
         std::string
         displayName() const override
         {
-            return "AOI";
+            return "AOI配置";
         }
         void
         draw() override
@@ -32,7 +32,9 @@ class Config : public ImGui::extend::GroupBasicConfig
             using namespace std::filesystem;
             aoi_dir = conf["aoi_dir"].as<std::string>("");
         }
-        std::string aoi_dir = "aoi";
+        std::string aoi_dir;
+
+      private:
         ImGui::extend::FileDialog fileDialog;
     };
     Config();
@@ -52,5 +54,7 @@ class Config : public ImGui::extend::GroupBasicConfig
             return "AOI Configs";
         }
     };
-    AoiConfigs m_aoiConfigs_;
+
+  public:
+    AoiConfigs aoiConfigs;
 };

@@ -1,7 +1,5 @@
 #include "ImguiWidget.h"
-
-#include "imgui_extend/imgui_impl_qt.h"
-#include "imgui_extend/imgui_impl_qt_opengl3.h"
+#include "imgui.h"
 #include <QApplication>
 #include <QDebug>
 #include <QScreen>
@@ -54,26 +52,18 @@ SetupFontWithQt()
 ImguiWidget::ImguiWidget(QWidget* parent /*= Q_NULLPTR*/, Qt::WindowFlags f /*= Qt::WindowFlags()*/)
     : QOpenGLWidget(parent, f)
 {
-    /*   auto timer = new QTimer(this);
-       QObject::connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-       timer->setInterval(16);
-       timer->start();*/
+    updateTimer_ = new QTimer(this);
+    QObject::connect(updateTimer_, SIGNAL(timeout()), this, SLOT(update()));
+    updateTimer_->setInterval(16);
+    this->setFocusPolicy(Qt::StrongFocus);
 }
 
-ImguiWidget::~ImguiWidget()
-{
-    ImGui::SetCurrentContext(m_ctx);
-    ImGui_ImplQtOpenGL3_Shutdown();
-    ImGui_ImplQt_Shutdown();
-    ImGui::DestroyContext(m_ctx);
-}
+ImguiWidget::~ImguiWidget() {}
 void
 ImguiWidget::initializeGL()
 {
-    m_ctx = ImGui::CreateContext();
-    ImGui::SetCurrentContext(m_ctx);
-    ImGui_ImplQt_Init(this);
-    ImGui_ImplQtOpenGL3_Init(nullptr);
+    initializeOpenGLFunctions();
+    ref_ = QtImGui::initialize(this, false);
 
     IMGUI_CHECKVERSION();
 
@@ -140,10 +130,11 @@ ImguiWidget::initializeGL()
 void
 ImguiWidget::paintGL()
 {
-    ImGui::SetCurrentContext(m_ctx);
-    ImGui_ImplQtOpenGL3_NewFrame();
-    ImGui_ImplQt_NewFrame();
-    ImGui::NewFrame();
+    QtImGui::newFrame(ref_);
+    // ImGui::SetCurrentContext(m_ctx);
+    // ImGui_ImplQtOpenGL3_NewFrame();
+    // ImGui_ImplQt_NewFrame();
+    // ImGui::NewFrame();
 
     ImGuiViewport const* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
@@ -163,7 +154,17 @@ ImguiWidget::paintGL()
     ImGui::End();
 
     ImGui::Render();
-    ImGui_ImplQtOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    QtImGui::render(ref_);
+}
 
-    QTimer::singleShot(16, this, SLOT(update()));
+void
+ImguiWidget::showEvent(QShowEvent* event)
+{
+    updateTimer_->start();
+}
+
+void
+ImguiWidget::hideEvent(QHideEvent* event)
+{
+    updateTimer_->stop();
 }

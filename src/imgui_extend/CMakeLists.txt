@@ -26,6 +26,7 @@ target_link_libraries(${MODULE} PUBLIC
     PUBLIC service_interface
 )
 target_compile_definitions(${MODULE} PRIVATE IMGUI_EXTEND_EXPORTS)
+set_target_properties(${MODULE} PROPERTIES AUTOMOC ON)
 
 if(MSVC)
     target_compile_options(${MODULE} PRIVATE /utf-8)

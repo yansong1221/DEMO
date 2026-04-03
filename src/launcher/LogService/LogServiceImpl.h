@@ -6,15 +6,14 @@
 #include <cppmicroservices/logservice/Logger.hpp>
 
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <vector>
-
-#include <spdlog/sinks/qt_sinks.h>
-#include <spdlog/sinks/rotating_file_sink.h>
+#include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 class LogWidget;
 class QTextEdit;
@@ -91,12 +90,15 @@ class LoggerImpl : public cppmicroservices::logservice::Logger
               std::exception_ptr const ex) override;
 
   private:
-    void log(int level,
+    void log(spdlog::level::level_enum level,
              std::string const& message,
              cppmicroservices::ServiceReferenceBase const* sr = nullptr,
              std::exception_ptr const* ex = nullptr);
-    void log(int level, std::string const& format, std::string const& arg);
-    void log(int level, std::string const& format, std::string const& arg1, std::string const& arg2);
+    void log(spdlog::level::level_enum level, std::string const& format, std::string const& arg);
+    void log(spdlog::level::level_enum level,
+             std::string const& format,
+             std::string const& arg1,
+             std::string const& arg2);
     QString formatException(std::exception_ptr const& ex);
 
     std::string m_name;
@@ -104,15 +106,26 @@ class LoggerImpl : public cppmicroservices::logservice::Logger
     LogServiceImpl* m_service;
 };
 
+class QtLogSink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
+
+{
+  public:
+    QtLogSink(LogWidget* widget);
+
+  protected:
+    void sink_it_(spdlog::details::log_msg const& msg) override;
+    void flush_() override;
+
+  private:
+    QPointer<LogWidget> widget_;
+};
+
 // LogService 实现
 class LogServiceImpl : public cppmicroservices::logservice::LogService
 {
   public:
-    LogServiceImpl();
+    LogServiceImpl(LogWidget* widget);
     ~LogServiceImpl() override;
-
-    // 设置日志显示控件
-    void setLogWidget(LogWidget* widget);
 
     // 获取日志控件（用于直接操作）
     LogWidget* getLogWidget() const;
@@ -138,16 +151,18 @@ class LogServiceImpl : public cppmicroservices::logservice::LogService
              std::exception_ptr const ex) override;
 
     // 内部方法，供 LoggerImpl 调用
-    void addLogEntry(int level, QString const& bundleName, QString const& message);
+    void addLogEntry(spdlog::level::level_enum level, QString const& bundleName, QString const& message);
+    void addLogEntry(cppmicroservices::logservice::SeverityLevel level,
+                     QString const& bundleName,
+                     QString const& message);
 
   private:
-    int severityToLevel(cppmicroservices::logservice::SeverityLevel level) const;
+    static spdlog::level::level_enum severityToLevel(cppmicroservices::logservice::SeverityLevel level);
     QString getBundleName(cppmicroservices::Bundle const& bundle) const;
-    void initSpdlog();
 
     mutable std::mutex m_mutex;
-    LogWidget* m_logWidget = nullptr;
+    LogWidget* m_logWidget;
 
     // spdlog 相关
-    std::shared_ptr<spdlog::logger> m_fileLogger; // 文件日志
+    std::shared_ptr<spdlog::logger> m_logger; // 文件日志
 };

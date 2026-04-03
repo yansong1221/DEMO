@@ -5,24 +5,75 @@
 #include <cppmicroservices/BundleContext.h>
 
 #include "common/Logger.h"
+#include "common/misc.h"
+#include <QCoreApplication>
+#include <QDir>
+#include <fstream>
 #include <string>
 
-namespace
+namespace detail
 {
-
-    QString
-    fromStdString(std::string const& value)
+    static QDir
+    getConfigSaveDir()
     {
-        return QString::fromUtf8(value.c_str());
+        return QCoreApplication::applicationDirPath() + "/task_service_config";
+    }
+    static QString
+    getConfigSaveFileName(std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller)
+    {
+        auto dir = getConfigSaveDir();
+        if (!dir.exists())
+        {
+            if (!dir.mkpath(dir.absolutePath()))
+            {
+                common::Log::warn("无法创建目录: {}", dir.absolutePath().toStdString());
+            }
+        }
+        return dir.filePath(QString("%1.yaml").arg(QString::fromStdString(controller->serviceName())));
     }
 
-    std::string
-    toStdString(QString const& value)
+    static std::shared_ptr<service::ITaskService::IBasicConfig>
+    loadConfig(std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller)
     {
-        QByteArray const utf8 = value.toUtf8();
-        return std::string(utf8.constData(), static_cast<size_t>(utf8.size()));
+        auto config = controller->createConfig();
+        auto fileName = getConfigSaveFileName(controller);
+
+        try
+        {
+            YAML::Node yaml;
+            if (QFile::exists(fileName))
+            {
+                yaml = YAML::LoadFile(fileName.toLocal8Bit().constData());
+            }
+            config->restore(yaml);
+        }
+        catch (std::exception const& e)
+        {
+            common::Log::warn("加载配置文件:{} 出现异常:{}", fileName.toUtf8(), common::misc::to_u8string(e.what()));
+        }
+        return config;
     }
-} // namespace
+    static void
+    saveConfig(std::shared_ptr<service::ITaskServiceManager::ITaskServiceController> controller,
+               std::shared_ptr<service::ITaskService::IBasicConfig> config)
+    {
+        auto fileName = getConfigSaveFileName(controller);
+
+        try
+        {
+            YAML::Node yaml;
+            config->save(yaml);
+
+            std::ofstream file(fileName.toLocal8Bit());
+            file << yaml;
+        }
+        catch (std::exception const& e)
+        {
+            common::Log::warn("保存配置文件:{} 出现异常:{}", fileName.toUtf8(), common::misc::to_u8string(e.what()));
+        }
+    }
+
+} // namespace detail
 
 TaskServiceTableModel::TaskServiceTableModel(cppmicroservices::BundleContext bundleContext, QObject* parent)
     : QAbstractTableModel(parent)
@@ -84,9 +135,9 @@ TaskServiceTableModel::data(QModelIndex const& index, int role) const
         switch (index.column())
         {
             case ColName:
-                return fromStdString(controller->serviceName());
+                return QString::fromStdString(controller->displayServiceName());
             case ColBundle:
-                return fromStdString(controller->symbolicName());
+                return QString::fromStdString(controller->symbolicName());
             case ColStatus:
                 return running ? tr("运行中") : tr("已停止");
             case ColActions:
@@ -227,7 +278,7 @@ TaskServiceTableModel::onControllerEvent(
                 endInsertRows();
 
                 common::Log::info(
-                    tr("[任务服务] 已注册：%1").arg(fromStdString(controller->serviceName())).toStdString());
+                    tr("[任务服务] 已注册：%1").arg(QString::fromStdString(controller->serviceName())).toStdString());
             }
             break;
         }
@@ -246,7 +297,7 @@ TaskServiceTableModel::onControllerEvent(
             }
             if (index >= 0)
             {
-                QString name = fromStdString(m_controllers[index]->serviceName());
+                QString name = QString::fromStdString(m_controllers[index]->serviceName());
                 beginRemoveRows(QModelIndex(), index, index);
                 m_controllers.erase(m_controllers.begin() + index);
                 endRemoveRows();
@@ -269,11 +320,13 @@ TaskServiceTableModel::onStatusChanged(int index,
         auto const& controller = m_controllers[static_cast<size_t>(index)];
         if (status == service::ITaskServiceManager::ITaskServiceController::TaskServiceStatus::Running)
         {
-            common::Log::info(tr("[任务服务] %1 已启动").arg(fromStdString(controller->serviceName())).toStdString());
+            common::Log::info(
+                tr("[任务服务] %1 已启动").arg(QString::fromStdString(controller->serviceName())).toStdString());
         }
         else
         {
-            common::Log::info(tr("[任务服务] %1 已停止").arg(fromStdString(controller->serviceName())).toStdString());
+            common::Log::info(
+                tr("[任务服务] %1 已停止").arg(QString::fromStdString(controller->serviceName())).toStdString());
         }
     }
 }
@@ -305,8 +358,7 @@ TaskServiceTableModel::startService(int row)
         {
             return true; // 已经在运行
         }
-
-        auto config = controller->createConfig();
+        auto config = detail::loadConfig(controller);
         return controller->start(config);
     }
     catch (std::exception const& e)
@@ -342,7 +394,7 @@ TaskServiceTableModel::createConfig(int row)
     {
         return nullptr;
     }
-    return m_controllers[row]->createConfig();
+    return detail::loadConfig(m_controllers[row]);
 }
 
 void
@@ -352,15 +404,9 @@ TaskServiceTableModel::configureService(int row, std::shared_ptr<service::ITaskS
     {
         return;
     }
-    try
-    {
-        auto controller = m_controllers[static_cast<size_t>(row)];
-        // controller->updateConfig(config);
-    }
-    catch (std::exception const& e)
-    {
-        common::Log::error(tr("[任务服务] 配置服务失败：%1").arg(QString::fromUtf8(e.what())).toStdString());
-    }
+
+    auto controller = m_controllers[static_cast<size_t>(row)];
+    detail::saveConfig(controller, config);
 }
 
 std::shared_ptr<service::ITaskServiceManager>

@@ -80,9 +80,23 @@ DetectPanelImpl::toDetectJson() const
 
         for (auto const& comp : board.m_componentItems)
         {
+
             boost::json::array json_windows;
             for (auto const& win : comp.m_windowItems)
             {
+                common::Log::info(
+                    R"(检测信息 LINE: {} STATION: {} NAME: {} SN: {} BOARD_INDEX: {} COMP_NAME: {} COMP_CODE: {} WIN: {} LIGHT: {} ANGLE: {})",
+                    m_line,
+                    m_station,
+                    m_name,
+                    m_sn,
+                    board.m_boardIndex,
+                    comp.m_compName,
+                    comp.m_compCode,
+                    win.m_windowName,
+                    win.m_windowLight,
+                    win.m_angle);
+
                 boost::json::object json_win;
                 json_win["name"] = win.m_windowName;
                 json_win["light"] = win.m_windowLight;

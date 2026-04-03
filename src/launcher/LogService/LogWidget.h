@@ -1,30 +1,16 @@
 #pragma once
 
+#include "ImguiWidget.h"
 #include <QTextCharFormat>
 #include <QWidget>
 #include <memory>
 #include <mutex>
+#include <spdlog/spdlog.h>
 #include <vector>
+#include "imguial_term.h"
 
-QT_BEGIN_NAMESPACE
-class QTextEdit;
-class QLineEdit;
-class QPushButton;
-class QCheckBox;
-class QComboBox;
-class QLabel;
-QT_END_NAMESPACE
 
-struct LogEntry
-{
-    qint64 timestamp;
-    int level; // 0=Error, 1=Warning, 2=Info, 3=Debug, 4=Trace, 5=Audit
-    QString bundleName;
-    QString message;
-    QString fullText;
-};
-
-class LogWidget : public QWidget
+class LogWidget : public ImguiWidget
 {
     Q_OBJECT
 
@@ -32,65 +18,12 @@ class LogWidget : public QWidget
     explicit LogWidget(QWidget* parent = nullptr);
     ~LogWidget() override;
 
-    // 添加日志条目
-    void addLog(int level, QString const& bundleName, QString const& message);
+  public Q_SLOTS:
+    void addLog(spdlog::level::level_enum level, QString const& message);
 
-    // 清空日志
-    void clearLog();
-
-    // 获取日志内容（用于导出）
-    QString getAllLogText() const;
-
-    // 设置最大日志行数
-    void setMaxLogLines(int maxLines);
-
-  signals:
-    void logEntryAdded(LogEntry const& entry);
-
-  private slots:
-    void onSearchTextChanged(QString const& text);
-    void onSearchNext();
-    void onSearchPrevious();
-    void onClearLog();
-    void onFilterChanged();
-    void onAutoScrollToggled(bool checked);
-
+  protected:
+    void drawImgui() override;
+    void initializeGL() override;
   private:
-    void setupUI();
-    void setupConnections();
-    void appendToDisplay(LogEntry const& entry);
-    void refreshDisplay();
-    QTextCharFormat getFormatForLevel(int level) const;
-    QString levelToString(int level) const;
-    QColor levelToColor(int level) const;
-    bool entryMatchesFilter(LogEntry const& entry) const;
-    void highlightSearchResults();
-
-    // UI elements
-    QTextEdit* m_logDisplay = nullptr;
-    QLineEdit* m_searchEdit = nullptr;
-    QPushButton* m_searchNextBtn = nullptr;
-    QPushButton* m_searchPrevBtn = nullptr;
-    QPushButton* m_clearBtn = nullptr;
-    QCheckBox* m_autoScrollCheck = nullptr;
-    QCheckBox* m_showErrorCheck = nullptr;
-    QCheckBox* m_showWarningCheck = nullptr;
-    QCheckBox* m_showInfoCheck = nullptr;
-    QCheckBox* m_showDebugCheck = nullptr;
-    QLabel* m_statusLabel = nullptr;
-
-    // Data
-    std::vector<LogEntry> m_logEntries;
-    mutable std::mutex m_logMutex;
-    int m_maxLogLines = 10000;
-    int m_currentSearchIndex = -1;
-    QString m_currentSearchText;
-
-    // Format cache
-    QTextCharFormat m_errorFormat;
-    QTextCharFormat m_warningFormat;
-    QTextCharFormat m_infoFormat;
-    QTextCharFormat m_debugFormat;
-    QTextCharFormat m_traceFormat;
-    QTextCharFormat m_auditFormat;
+    ImGuiAl::Log _terminal;
 };

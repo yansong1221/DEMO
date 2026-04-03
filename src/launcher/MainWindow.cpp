@@ -90,10 +90,7 @@ void MainWindow::setupUI()
 void MainWindow::setupLogService()
 {
     // 创建 LogService 实现
-    m_logServiceImpl = std::make_shared<LogServiceImpl>();
-
-    // 设置日志显示控件
-    m_logServiceImpl->setLogWidget(m_logWidget);
+    m_logServiceImpl = std::make_shared<LogServiceImpl>(m_logWidget);
 
     // 注册 LogService 到框架
     cppmicroservices::ServiceProperties props;

@@ -1,9 +1,13 @@
 #pragma once
+#include "QtImGui.h"
+#include <QOpenGLExtraFunctions>
 #include <QOpenGLWidget>
 
 struct ImGuiContext;
 
-class ImguiWidget : public QOpenGLWidget
+class ImguiWidget
+    : public QOpenGLWidget
+    , private QOpenGLExtraFunctions
 {
     Q_OBJECT
   public:
@@ -15,6 +19,11 @@ class ImguiWidget : public QOpenGLWidget
     void paintGL() override;
     virtual void drawImgui() = 0;
 
+  protected:
+    void showEvent(QShowEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
+
   private:
-    ImGuiContext* m_ctx {};
+    QtImGui::RenderRef ref_ = nullptr;
+    QTimer* updateTimer_;
 };
