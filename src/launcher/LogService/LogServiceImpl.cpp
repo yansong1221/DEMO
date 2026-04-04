@@ -540,6 +540,35 @@ LogServiceImpl::drawImGui()
     ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
     if (ImGui::Begin(tr("UILogOutput").toUtf8()))
     {
+        ImGui::BeginGroup();
+
+        // ImGui::Text(misc::gettext("Log level:").c_str());
+        // ImGui::SameLine();
+        std::string logName = spdlog::level::to_string_view(m_logger->level()).data();
+        int logLevel = m_logger->level();
+
+        ImGui::SetNextItemWidth(100.0f);
+        if (ImGui::BeginCombo(tr("Log level").toUtf8(), logName.c_str()))
+        {
+            for (size_t i = 0; i < spdlog::level::n_levels; i++)
+            {
+                bool is_selected = (logLevel == static_cast<int>(i));
+
+                std::string name = spdlog::level::to_string_view((spdlog::level::level_enum)i).data();
+                if (ImGui::Selectable(name.c_str(), is_selected))
+                {
+                    auto level = static_cast<spdlog::level::level_enum>(i);
+                    m_logger->set_level(level);
+                }
+                if (is_selected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        ImGui::EndGroup();
         _terminal.draw();
     }
     ImGui::End();

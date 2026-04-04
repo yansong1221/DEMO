@@ -37,7 +37,6 @@ namespace ImGui::extend
         void sortDrawRowIndexes();
 
       private:
-        ImGuiListClipper clipper_;
         std::vector<int> drawRowIndexes_;
         bool reloadRows_ = true;
         ImVector<int> selection_;

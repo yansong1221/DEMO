@@ -29,6 +29,7 @@ namespace ImGui::extend
 
                 sortDrawRowIndexes();
 
+                ImGuiListClipper clipper_;
                 clipper_.Begin(drawRowIndexes_.size());
                 while (clipper_.Step())
                 {
