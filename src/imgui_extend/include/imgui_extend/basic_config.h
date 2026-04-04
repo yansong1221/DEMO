@@ -1,5 +1,6 @@
 #pragma once
 #include "export.h"
+#include "service/IAIAgentService.h"
 #include "service/ITaskService.h"
 #include <functional>
 #include <vector>
@@ -15,6 +16,31 @@ namespace ImGui::extend
             return {};
         }
     };
+    class IMGUI_EXTEND_API TrustModeConfig : public BasicConfig
+    {
+      public:
+        enum class mode
+        {
+            off = 0,
+            on,
+            with_program
+        };
+
+        bool isTrust(std::shared_ptr<service::ITrustProgramService> serv,
+                     std::string const& line,
+                     std::string const& station,
+                     std::string const& program) const;
+
+        virtual std::string displayName() const override;
+
+      public:
+        void draw() override;
+        void restore(YAML::Node item) override;
+        void save(YAML::Node& conf) const override;
+
+      private:
+        mode trust_mode_ = mode::off;
+    };
 
     class IMGUI_EXTEND_API ArrayBasicConfig : virtual public BasicConfig
     {
@@ -22,7 +48,7 @@ namespace ImGui::extend
         using CreateFunc = std::function<BasicConfigPtr()>;
 
       public:
-        ArrayBasicConfig(CreateFunc&& func) : m_createFunc(std::move(func)) {}
+        ArrayBasicConfig() = default;
 
       public:
         void draw() override;
@@ -42,6 +68,14 @@ namespace ImGui::extend
                 }
             }
             return result;
+        }
+        void setCreateFunc(CreateFunc&& handler);
+
+        template <class _Ty, class... _Types>
+        void
+        setCreateFunc(_Types&&... _Args)
+        {
+            setCreateFunc([]() -> BasicConfigPtr { return std::make_shared<_Ty>(std::forward<_Types>(_Args)...); });
         }
 
       private:

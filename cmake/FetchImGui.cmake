@@ -51,6 +51,15 @@ if(NOT TARGET imgui)
     
     target_link_libraries(imgui PRIVATE Freetype::Freetype)
 
+
+    # 声明 ImGuiWS 依赖
+    FetchContent_Declare(
+        imgui_ws
+        GIT_REPOSITORY https://github.com/yansong1221/imgui-ws.git
+        GIT_TAG master
+    )
+    FetchContent_MakeAvailable(imgui_ws)
+
     # 设置 VS 项目文件夹
     set_target_properties(imgui PROPERTIES FOLDER "3rdparty")
 

@@ -19,10 +19,11 @@ namespace task_service_manager
         {
             common::Log::init(context);
 
-            m_manager = std::make_shared<TaskServiceManager>(context);
+            m_manager = std::make_shared<TaskServiceManagerImpl>(context);
             ServiceProperties props;
             props["service.description"] = std::string("TaskServiceManager bundle service");
             m_registration = context.RegisterService<service::ITaskServiceManager>(m_manager, props);
+            m_regWidgetService = context.RegisterService<service::IImGuiDrawService>(m_manager, props);
             common::Log::info("TaskServiceManager started and service registered.");
         }
 
@@ -32,14 +33,17 @@ namespace task_service_manager
             common::Log::info("TaskServiceManager stopped.");
 
             m_registration.Unregister();
+            m_regWidgetService.Unregister();
+
             m_manager.reset();
 
             common::Log::reset();
         }
 
       private:
-        std::shared_ptr<TaskServiceManager> m_manager;
+        std::shared_ptr<TaskServiceManagerImpl> m_manager;
         ServiceRegistration<service::ITaskServiceManager> m_registration;
+        ServiceRegistration<service::IImGuiDrawService> m_regWidgetService;
     };
 
 } // namespace task_service_manager

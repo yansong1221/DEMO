@@ -114,4 +114,11 @@ namespace service
         virtual void detect(std::shared_ptr<IDetectPanel> panel) = 0;
         virtual boost::asio::awaitable<void> coroDetect(std::shared_ptr<IDetectPanel> panel) = 0;
     };
+
+    class ITrustProgramService
+    {
+      public:
+        virtual ~ITrustProgramService() = default;
+        virtual bool isTrust(std::string const& line, std::string const& station, std::string const& name) = 0;
+    };
 } // namespace service

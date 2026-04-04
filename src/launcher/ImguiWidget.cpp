@@ -43,10 +43,7 @@ SetupFontWithQt()
     ImGuiIO& io = ImGui::GetIO();
     float pixelSize = QtFontToPixelSize(QApplication::font());
 
-    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/msyh.ttc",
-                                 pixelSize,
-                                 nullptr,
-                                 io.Fonts->GetGlyphRangesChineseFull());
+    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/msyh.ttc", 20.f, nullptr, io.Fonts->GetGlyphRangesChineseFull());
 }
 
 ImguiWidget::ImguiWidget(QWidget* parent /*= Q_NULLPTR*/, Qt::WindowFlags f /*= Qt::WindowFlags()*/)
@@ -71,6 +68,7 @@ ImguiWidget::initializeGL()
 
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     io.ConfigDpiScaleFonts = true;
     io.ConfigDpiScaleViewports = true;
@@ -80,50 +78,54 @@ ImguiWidget::initializeGL()
     style.ScaleAllSizes(main_scale);
     style.FontScaleDpi = main_scale;
 
+    style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.4f, 0.6f, 1.0f);
+    style.Colors[ImGuiCol_TabHovered] = ImVec4(0.1f, 0.3f, 0.8f, 1.0f);
+    style.Colors[ImGuiCol_TabActive] = ImVec4(0.1f, 0.3f, 0.8f, 1.0f);
+
     SetupFontWithQt();
-    if (false)
-    {
-        namespace fs = std::filesystem;
+    // if (false)
+    //{
+    //     namespace fs = std::filesystem;
 
-        ImFontGlyphRangesBuilder builder;
-        builder.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
-        builder.AddRanges(io.Fonts->GetGlyphRangesVietnamese());
+    //    ImFontGlyphRangesBuilder builder;
+    //    builder.AddRanges(io.Fonts->GetGlyphRangesChineseFull());
+    //    builder.AddRanges(io.Fonts->GetGlyphRangesVietnamese());
 
-        ImVector<ImWchar> out_ranges;
-        builder.BuildRanges(&out_ranges);
+    //    ImVector<ImWchar> out_ranges;
+    //    builder.BuildRanges(&out_ranges);
 
-        std::vector<fs::path> const fonts {
-            "C:\\Windows\\Fonts\\msyh.ttc",
-            //"C:\\Windows\\Fonts\\msyh.ttf",
-            //"C:\\Windows\\Fonts\\segoeui.ttf",
-        };
-        // io.Fonts->AddFontDefault();
+    //    std::vector<fs::path> const fonts {
+    //        "C:\\Windows\\Fonts\\msyh.ttc",
+    //        //"C:\\Windows\\Fonts\\msyh.ttf",
+    //        //"C:\\Windows\\Fonts\\segoeui.ttf",
+    //    };
+    //    // io.Fonts->AddFontDefault();
 
-        QFont font;
+    //    QFont font;
 
-        ImFontConfig config;
-        config.MergeMode = true;
+    //    ImFontConfig config;
+    //    config.MergeMode = true;
 
-        for (auto const& p : fonts)
-        {
-            std::error_code ec;
-            if (!fs::exists(p, ec))
-            {
-                continue;
-            }
-            // io.Fonts->AddFontFromFileTTF(p.string().c_str(), 24.0f, nullptr, out_ranges.Data);
+    //    for (auto const& p : fonts)
+    //    {
+    //        std::error_code ec;
+    //        if (!fs::exists(p, ec))
+    //        {
+    //            continue;
+    //        }
+    //        // io.Fonts->AddFontFromFileTTF(p.string().c_str(), 24.0f, nullptr, out_ranges.Data);
 
-            io.Fonts->AddFontFromFileTTF(p.string().c_str(), 24.0f, nullptr, io.Fonts->GetGlyphRangesChineseFull());
+    //        io.Fonts->AddFontFromFileTTF(p.string().c_str(), 24.0f, nullptr, io.Fonts->GetGlyphRangesChineseFull());
 
-            if (!config.MergeMode)
-            {
-                config.MergeMode = true;
-            }
-        }
-        // if (!config.MergeMode) {
-        //     io.Fonts->AddFontDefault(&config);
-        // }
-    }
+    //        if (!config.MergeMode)
+    //        {
+    //            config.MergeMode = true;
+    //        }
+    //    }
+    //    // if (!config.MergeMode) {
+    //    //     io.Fonts->AddFontDefault(&config);
+    //    // }
+    //}
     ImGui::StyleColorsLight();
 }
 
@@ -131,10 +133,6 @@ void
 ImguiWidget::paintGL()
 {
     QtImGui::newFrame(ref_);
-    // ImGui::SetCurrentContext(m_ctx);
-    // ImGui_ImplQtOpenGL3_NewFrame();
-    // ImGui_ImplQt_NewFrame();
-    // ImGui::NewFrame();
 
     ImGuiViewport const* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->Pos);
@@ -149,11 +147,14 @@ ImguiWidget::paintGL()
     // automatically called "Debug"
     if (ImGui::Begin("##FullWindowHiddenTitle", nullptr, flags))
     {
-        this->drawImgui();
+        this->drawImGui();
     }
     ImGui::End();
 
     ImGui::Render();
+
+    endDrawImGui();
+
     QtImGui::render(ref_);
 }
 

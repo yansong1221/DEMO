@@ -5,6 +5,8 @@
 #include <cppmicroservices/logservice/LogService.hpp>
 #include <cppmicroservices/logservice/Logger.hpp>
 
+#include "imgui_extend/imguial_term.h"
+#include "service/IUIService.h"
 #include <QObject>
 #include <QPointer>
 #include <QString>
@@ -14,15 +16,6 @@
 #include <spdlog/sinks/base_sink.h>
 #include <spdlog/spdlog.h>
 #include <vector>
-
-class LogWidget;
-class QTextEdit;
-
-// 日志级别映射：
-// LogService::SeverityLevel -> LogWidget level
-// LOG_ERROR -> 0, LOG_WARNING -> 1, LOG_INFO -> 2, LOG_DEBUG -> 3
-// Logger::LogLevel -> LogWidget level
-// Error -> 0, Warn -> 1, Info -> 2, Debug -> 3, Trace -> 4, Audit -> 5
 
 class LogServiceImpl;
 
@@ -106,29 +99,20 @@ class LoggerImpl : public cppmicroservices::logservice::Logger
     LogServiceImpl* m_service;
 };
 
-class QtLogSink : public spdlog::sinks::base_sink<spdlog::details::null_mutex>
-
-{
-  public:
-    QtLogSink(LogWidget* widget);
-
-  protected:
-    void sink_it_(spdlog::details::log_msg const& msg) override;
-    void flush_() override;
-
-  private:
-    QPointer<LogWidget> widget_;
-};
-
 // LogService 实现
-class LogServiceImpl : public cppmicroservices::logservice::LogService
+class LogServiceImpl
+    : public QObject
+    , public spdlog::sinks::base_sink<spdlog::details::null_mutex>
+    , public cppmicroservices::logservice::LogService
+    , public service::IImGuiDrawService
+    , public std::enable_shared_from_this<LogServiceImpl>
 {
+    Q_OBJECT
   public:
-    LogServiceImpl(LogWidget* widget);
+    LogServiceImpl();
     ~LogServiceImpl() override;
 
-    // 获取日志控件（用于直接操作）
-    LogWidget* getLogWidget() const;
+    void Init();
 
     // LoggerFactory interface
     std::shared_ptr<cppmicroservices::logservice::Logger> getLogger(std::string const& name
@@ -156,13 +140,19 @@ class LogServiceImpl : public cppmicroservices::logservice::LogService
                      QString const& bundleName,
                      QString const& message);
 
+  protected:
+    void sink_it_(spdlog::details::log_msg const& msg) override;
+    void flush_() override;
+
+  protected:
+    void drawImGui() override;
+
   private:
     static spdlog::level::level_enum severityToLevel(cppmicroservices::logservice::SeverityLevel level);
     QString getBundleName(cppmicroservices::Bundle const& bundle) const;
 
     mutable std::mutex m_mutex;
-    LogWidget* m_logWidget;
+    std::shared_ptr<spdlog::logger> m_logger;
 
-    // spdlog 相关
-    std::shared_ptr<spdlog::logger> m_logger; // 文件日志
+    ImGuiAl::Log _terminal;
 };

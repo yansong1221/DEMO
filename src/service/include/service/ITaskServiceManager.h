@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ITaskService.h"
+#include "IUIService.h"
 #include <functional>
 #include <memory>
 #include <string>
@@ -9,7 +10,7 @@
 namespace service
 {
 
-    class ITaskServiceManager
+    class ITaskServiceManager : public IImGuiDrawService
     {
       public:
         class ITaskServiceController
@@ -29,7 +30,8 @@ namespace service
             virtual std::string displayServiceName() const = 0;
             virtual TaskServiceStatus status() const = 0;
             virtual std::shared_ptr<ITaskService::IBasicConfig> createConfig() const = 0;
-            virtual bool start(std::shared_ptr<ITaskService::IBasicConfig> config) = 0;
+            virtual void saveConfig(std::shared_ptr<ITaskService::IBasicConfig> config) = 0;
+            virtual bool start() = 0;
             virtual void stop() = 0;
             virtual void setStatusCallback(TaskServiceStatusCallback callback) = 0;
         };

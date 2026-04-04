@@ -26,6 +26,7 @@ target_link_libraries(${MODULE} PUBLIC
     PUBLIC service_interface
 )
 target_compile_definitions(${MODULE} PRIVATE IMGUI_EXTEND_EXPORTS)
+target_compile_definitions(${MODULE} PUBLIC NOMINMAX)
 set_target_properties(${MODULE} PROPERTIES AUTOMOC ON)
 
 if(MSVC)

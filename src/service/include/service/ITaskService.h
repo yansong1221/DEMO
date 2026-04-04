@@ -21,7 +21,9 @@ namespace service
         virtual ~ITaskService() = default;
 
         virtual std::string name() const = 0;
-        virtual std::string displayName() const = 0;
+        virtual std::string
+        displayName() const
+        { return name(); };
 
         virtual void requestStop() = 0;
         virtual bool onThreadRun() = 0;

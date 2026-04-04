@@ -29,7 +29,10 @@ CppMicroServices
 usLogService 
 spdlog::spdlog 
 imgui 
-imgui_extend)
+imgui_extend
+imgui-ws
+incppect
+)
 target_link_libraries(${MODULE} PRIVATE service_interface)
 set_target_properties(${MODULE} PROPERTIES AUTOMOC ON)
 

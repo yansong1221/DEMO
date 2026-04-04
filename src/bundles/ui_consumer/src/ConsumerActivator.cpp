@@ -1,4 +1,4 @@
-#include "service/IWidgetService.h"
+#include "service/IUIService.h"
 #include <QCoreApplication>
 #include <QLabel>
 #include <cppmicroservices/BundleActivator.h>
@@ -8,10 +8,9 @@
 
 using namespace cppmicroservices;
 
-
-class UiImpl : public service::IWidgetPlus
+class UiImpl : public service::IWidgetService
 {
-public:
+  public:
     UiImpl()
     {
         w_ = new QLabel("Hello from the widget service!");
@@ -22,37 +21,43 @@ public:
         std::cout << "UiImpl destructor" << std::endl;
         delete w_;
     }
-    QWidget* widget() override { return w_; }
-    // void destroyWidget(QWidget* widget) override { delete static_cast<QLabel*>(widget); }
+    QWidget*
+    widget() override
+    {
+        return w_;
+    }
+    std::string
+    uniqueName() const override
+    {
+        return "demo.widget";
+    }
 
-    void hello() override { throw std::logic_error("The method or operation is not implemented."); }
-
-    QString uniqueName() const override { return "demo.widget"; }
-
-protected:
+  protected:
     QLabel* w_;
 };
 
-namespace demo {
-class ConsumerActivator : public BundleActivator
+namespace demo
 {
-    // std::unique_ptr<ServiceTracker<demo::IGreetingService>> m_tracker;
-public:
-    void Start(BundleContext context) override
+    class ConsumerActivator : public BundleActivator
     {
-        m_service = std::make_shared<UiImpl>();
-        m_reg     = context.RegisterService<service::IWidgetService>(m_service);
-    }
-    void Stop(BundleContext) override
-    {
-        m_reg.Unregister();
-        m_service.reset();
-    }
+        // std::unique_ptr<ServiceTracker<demo::IGreetingService>> m_tracker;
+      public:
+        void
+        Start(BundleContext context) override
+        {
+            m_service = std::make_shared<UiImpl>();
+            m_reg = context.RegisterService<service::IWidgetService>(m_service);
+        }
+        void
+        Stop(BundleContext) override
+        {
+            m_reg.Unregister();
+            m_service.reset();
+        }
 
-private:
-    cppmicroservices::ServiceRegistration<UiImpl> m_reg;
-    std::shared_ptr<UiImpl> m_service;
-
-};
+      private:
+        cppmicroservices::ServiceRegistration<UiImpl> m_reg;
+        std::shared_ptr<UiImpl> m_service;
+    };
 } // namespace demo
 CPPMICROSERVICES_EXPORT_BUNDLE_ACTIVATOR(demo::ConsumerActivator)

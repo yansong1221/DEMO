@@ -13,12 +13,12 @@
 #include "cppmicroservices/ServiceTracker.h"
 #include "cppmicroservices/ServiceTrackerCustomizer.h"
 #include <service/ITaskService.h>
-#include <service/IWidgetService.h>
+#include <service/IUIService.h>
 
 class BundleManagerDockWidget;
 class TaskServiceDockWidget;
-class LogWidget;
 class LogServiceImpl;
+class MainImGuiWidget;
 
 class MainWindow
     : public KDDockWidgets::QtWidgets::MainWindow
@@ -55,10 +55,8 @@ class MainWindow
 
     // Dock widgets
     BundleManagerDockWidget* m_bundleManagerDock = nullptr;
-    TaskServiceDockWidget* m_taskServiceDock = nullptr;
 
-    // Log widget (persistent central widget)
-    LogWidget* m_logWidget = nullptr;
+    MainImGuiWidget* m_MainImGui = nullptr;
 
     // LogService implementation
     std::shared_ptr<LogServiceImpl> m_logServiceImpl;
@@ -67,7 +65,7 @@ class MainWindow
     {
         cppmicroservices::ServiceReference<service::IWidgetService> ref;
         std::shared_ptr<service::IWidgetService> service;
-        KDDockWidgets::QtWidgets::DockWidget* dock_w = nullptr;
+        KDDockWidgets::QtWidgets::DockWidget* dock = nullptr;
     };
     std::vector<PluginState> m_Plugins;
     std::vector<cppmicroservices::Bundle> m_Bundles;

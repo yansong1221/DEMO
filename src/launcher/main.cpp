@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <cppmicroservices/FrameworkFactory.h>
 #include <windows.h>
+#include <QTranslator>
 
 int
 main(int argc, char** argv)
@@ -19,6 +20,15 @@ main(int argc, char** argv)
     KDDockWidgets::initFrontend(KDDockWidgets::FrontendType::QtWidgets);
 
     QApplication::setApplicationName(QStringLiteral("CppMicroServicesHost"));
+
+    QTranslator translator;
+
+    // 加载 qm 文件
+    if (translator.load("app_zh_CN.qm", "./translations")) // 或者文件路径
+    {
+        app.installTranslator(&translator);
+    }
+
 
     cppmicroservices::FrameworkFactory factory;
     auto framework = factory.NewFramework();

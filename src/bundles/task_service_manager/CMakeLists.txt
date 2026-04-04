@@ -1,4 +1,8 @@
 
+set(MODULE task_service_manager)
+
+find_package(Qt5 REQUIRED COMPONENTS Core)
+
 file(GLOB_RECURSE MODULE_SOURCES 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.h 
 ${CMAKE_CURRENT_SOURCE_DIR}/*.hpp 
@@ -10,8 +14,10 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${MODULE_SOURCES})
 
 
 us_add_bundle(
-    TARGET task_service_manager
+    TARGET ${MODULE}
     SOURCES ${MODULE_SOURCES}
     INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include
-    LINK_LIBRARIES
+    LINK_LIBRARIES Qt5::Core imgui imgui_extend
 )
+
+set_target_properties(${MODULE} PROPERTIES AUTOMOC ON)

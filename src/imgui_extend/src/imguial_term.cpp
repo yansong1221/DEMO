@@ -1,6 +1,7 @@
-#include "imguial_term.h"
-
+#include "imgui_extend/imguial_term.h"
 #include "imgui_extend/component.h"
+#include "textselect.hpp"
+#include <QCoreApplication>
 #include <algorithm>
 #include <ctype.h>
 #include <sstream>
@@ -8,28 +9,29 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <QCoreApplication>
-
 ImGuiAl::Crt::Crt(size_t const max_size)
     : _maxItemCount(max_size)
     , _foregroundColor(CGA::White)
     , _metaData(0)
     , _scrollToBottom(false)
-    , _textSelect(
-          [this](size_t idx) -> std::string_view
-          {
-              using namespace std::string_view_literals;
-              if (idx >= _drawItemIndexes.size())
-              {
-                  return "NULL"sv;
-              }
-              auto index = _drawItemIndexes[idx];
-              return _items[index].content;
-          },
-          [this]() { return _drawItemIndexes.size(); })
 {
+    _textSelect = std::make_unique<TextSelect>(
+        [this](size_t idx) -> std::string_view
+        {
+            using namespace std::string_view_literals;
+            if (idx >= _drawItemIndexes.size())
+            {
+                return "NULL"sv;
+            }
+            auto index = _drawItemIndexes[idx];
+            return _items[index].content;
+        },
+        [this]() { return _drawItemIndexes.size(); });
+
     _items.reserve(_maxItemCount);
 }
+
+ImGuiAl::Crt::~Crt() {}
 
 void
 ImGuiAl::Crt::setForegroundColor(ImU32 const color)
@@ -95,7 +97,7 @@ ImGuiAl::Crt::clear()
 {
     _items.clear();
     _drawItemIndexes.clear();
-    _textSelect.clearSelection();
+    _textSelect->clearSelection();
 }
 
 void
@@ -104,7 +106,7 @@ ImGuiAl::Crt::draw(ImVec2 const& size)
     char id[64];
     snprintf(id, sizeof(id), "ImGuiAl::Crt@%p", static_cast<void*>(this));
 
-    ImGui::BeginChild(id, size, false, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginChild(id, size, false, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoMove);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 1.0f));
 
     doDrawItems();
@@ -117,7 +119,7 @@ ImGuiAl::Crt::draw(ImVec2 const& size)
 void
 ImGuiAl::Crt::doDrawItems()
 {
-    if (!_textSelect.hasSelection() && _items.size() > _maxItemCount)
+    if (!_textSelect->hasSelection() && _items.size() > _maxItemCount)
     {
         auto overflowCount = _items.size() - _maxItemCount;
         _items.erase(_items.begin(), _items.begin() + overflowCount);
@@ -133,13 +135,13 @@ ImGuiAl::Crt::doDrawItems()
         newDrawItemIndexes.push_back(i);
     }
 
-    if (_textSelect.hasSelection()
+    if (_textSelect->hasSelection()
         && !std::includes(newDrawItemIndexes.begin(),
                           newDrawItemIndexes.end(),
                           _drawItemIndexes.begin(),
                           _drawItemIndexes.end()))
     {
-        _textSelect.clearSelection();
+        _textSelect->clearSelection();
     }
     _drawItemIndexes.swap(newDrawItemIndexes);
 
@@ -150,26 +152,25 @@ ImGuiAl::Crt::doDrawItems()
         for (int line_no = clipper.DisplayStart; line_no < clipper.DisplayEnd; line_no++)
         {
             auto index = _drawItemIndexes[line_no];
-
             ImGui::PushStyleColor(ImGuiCol_Text, _items[index].foregroundColor);
             ImGui::TextUnformatted(_items[index].content.c_str());
             ImGui::PopStyleColor();
         }
     }
     clipper.End();
-    _textSelect.update();
+    _textSelect->update();
     if (ImGui::BeginPopupContextWindow())
     {
-        ImGui::BeginDisabled(!_textSelect.hasSelection());
+        ImGui::BeginDisabled(!_textSelect->hasSelection());
         if (ImGui::MenuItem(QCoreApplication::translate("ImGuiAl", "Copy").toUtf8(), "Ctrl+C"))
         {
-            _textSelect.copy();
+            _textSelect->copy();
         }
         ImGui::EndDisabled();
 
         if (ImGui::MenuItem(QCoreApplication::translate("ImGuiAl", "Select All").toUtf8(), "Ctrl+A"))
         {
-            _textSelect.selectAll();
+            _textSelect->selectAll();
         }
 
         if (ImGui::MenuItem(QCoreApplication::translate("ImGuiAl", "Clear").toUtf8()))
@@ -192,7 +193,7 @@ ImGuiAl::Crt::doScrollToBottom()
             _scrollToBottom = true;
         }
 
-        if (_textSelect.hasSelection())
+        if (_textSelect->hasSelection())
         {
             _scrollToBottom = false;
         }

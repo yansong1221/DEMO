@@ -31,105 +31,44 @@
     </message>
 </context>
 <context>
-    <name>LogWidget</name>
+    <name>ImGuiAl</name>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="53"/>
-        <source>搜索日志...</source>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="165"/>
+        <source>Copy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="57"/>
-        <source>下一个</source>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="171"/>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="353"/>
+        <source>Select All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="58"/>
-        <source>上一个</source>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="176"/>
+        <source>Clear</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="65"/>
-        <source>错误</source>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="347"/>
+        <source>Log display filtering</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="66"/>
-        <source>警告</source>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="351"/>
+        <source>Filter</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="67"/>
-        <source>信息</source>
+        <location filename="../src/imgui_extend/src/imguial_term.cpp" line="358"/>
+        <source>Deselect all</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>LogServiceImpl</name>
     <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="68"/>
-        <source>调试</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="75"/>
-        <source>显示级别:</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="84"/>
-        <source>自动滚动</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="88"/>
-        <source>清空</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="102"/>
-        <source>就绪</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="153"/>
-        <source>共 %1 条日志</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="213"/>
-        <source>ERROR</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="215"/>
-        <source>WARN</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="217"/>
-        <source>INFO</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="219"/>
-        <source>DEBUG</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="221"/>
-        <source>TRACE</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="223"/>
-        <source>AUDIT</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="225"/>
-        <source>UNKNOWN</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/LogService/LogWidget.cpp" line="362"/>
-        <source>已清空</source>
+        <location filename="../src/launcher/LogService/LogServiceImpl.cpp" line="541"/>
+        <source>UILogOutput</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -306,168 +245,126 @@
         <source>加载</source>
         <translation type="unfinished"></translation>
     </message>
+</context>
+<context>
+    <name>TaskServiceManagerImpl</name>
     <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceActionDelegate.cpp" line="95"/>
-        <source>停止</source>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="237"/>
+        <source>UITaskManager</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceActionDelegate.cpp" line="105"/>
-        <source>开始</source>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="264"/>
+        <source>Service Name</source>
+        <translation>服务名</translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="266"/>
+        <source>Bundle Name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceActionDelegate.cpp" line="114"/>
-        <source>配置</source>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="268"/>
+        <source>Status</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="270"/>
+        <source>Actions</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="360"/>
+        <source>Running</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="361"/>
+        <source>Stopped</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="370"/>
+        <source>Stop</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="378"/>
+        <source>Start</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="389"/>
+        <source>Setup</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="394"/>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="397"/>
+        <source>Setup UI</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="402"/>
+        <source>Save</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="408"/>
+        <source>Start task</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="410"/>
+        <source>Do you want to start/restart the task immediately?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="411"/>
+        <source>Yes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="411"/>
+        <source>NO</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="416"/>
+        <source>Cancel</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/bundles/task_service_manager/TaskServiceManager.cpp" line="420"/>
+        <source>Setup Items</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
-    <name>TaskServiceDockWidget</name>
+    <name>imgui::extend</name>
     <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="30"/>
-        <source>[监听] 在模型中注册任务服务监听器失败。</source>
+        <location filename="../src/imgui_extend/src/basic_config.cpp" line="16"/>
+        <source>Config%1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="50"/>
-        <source>刷新服务</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="78"/>
-        <source>任务服务</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="99"/>
-        <source>[任务服务] 已刷新，共发现 %1 个服务。</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="114"/>
-        <source>[任务服务] 服务 %1 启动成功。</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="118"/>
-        <source>[任务服务] 服务 %1 启动失败。</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="134"/>
-        <source>[任务服务] 服务 %1 已停止。</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="157"/>
-        <source>询问</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceDockWidget.cpp" line="157"/>
-        <source>是否重启服务?</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TaskServiceTableModel</name>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="91"/>
-        <source>运行中</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="91"/>
-        <source>已停止</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="125"/>
-        <source>服务</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="127"/>
-        <source>Bundle</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="129"/>
-        <source>状态</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="131"/>
-        <source>操作</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="183"/>
-        <source>[任务服务] 刷新控制器列表失败：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="207"/>
-        <source>[任务服务] 注册控制器事件回调失败：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="264"/>
-        <source>[任务服务] 已注册：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="288"/>
-        <source>[任务服务] 已注销：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="306"/>
-        <source>[任务服务] %1 已启动</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="310"/>
-        <source>[任务服务] %1 已停止</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="348"/>
-        <source>[任务服务] 启动服务失败：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="368"/>
-        <source>[任务服务] 停止服务失败：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="396"/>
-        <source>[任务服务] 配置服务失败：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/launcher/TaskServiceManager/TaskServiceTableModel.cpp" line="425"/>
-        <source>[任务服务] 获取任务服务管理器失败：%1</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>common::ui</name>
-    <message>
-        <location filename="../src/common/src/ui/BasicConfig.cpp" line="17"/>
-        <source>Config</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../src/common/src/ui/BasicConfig.cpp" line="34"/>
+        <location filename="../src/imgui_extend/src/basic_config.cpp" line="33"/>
         <source>Delete-[%1]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/common/src/ui/BasicConfig.cpp" line="44"/>
+        <location filename="../src/imgui_extend/src/basic_config.cpp" line="43"/>
         <source>Add</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/imgui_extend/src/component.cpp" line="35"/>
+        <source>Delete</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/imgui_extend/src/component.cpp" line="122"/>
+        <source>Select</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -6,6 +6,92 @@
 
 namespace ImGui::extend
 {
+    bool
+    TrustModeConfig::isTrust(std::shared_ptr<service::ITrustProgramService> serv,
+                             std::string const& line,
+                             std::string const& station,
+                             std::string const& program) const
+    {
+        bool program_trust = false;
+        if (serv)
+        {
+            program_trust = serv->isTrust(line, station, program);
+        }
+
+        switch (trust_mode_)
+        {
+            case TrustModeConfig::mode::off:
+                break;
+            case TrustModeConfig::mode::on:
+                return true;
+                break;
+            case TrustModeConfig::mode::with_program:
+                return program_trust;
+                break;
+            default:
+                break;
+        }
+        return false;
+    }
+
+    static std::string
+    mode_to_string(TrustModeConfig::mode m)
+    {
+        switch (m)
+        {
+            case TrustModeConfig::mode::off:
+                return QCoreApplication::translate("imgui::extend", "OFF").toStdString();
+            case TrustModeConfig::mode::on:
+                return QCoreApplication::translate("imgui::extend", "ON").toStdString();
+            case TrustModeConfig::mode::with_program:
+                return QCoreApplication::translate("imgui::extend", "Trust by program").toStdString();
+            default:
+                return QCoreApplication::translate("imgui::extend", "Unknown mode").toStdString();
+        }
+    }
+
+    void
+    TrustModeConfig::draw()
+    {
+        if (ImGui::BeginCombo(QCoreApplication::translate("imgui::extend", "Trust Mode").toUtf8(),
+                              mode_to_string(trust_mode_).c_str()))
+        {
+            if (ImGui::Selectable(QCoreApplication::translate("imgui::extend", "OFF").toUtf8(),
+                                  trust_mode_ == mode::off))
+            {
+                trust_mode_ = mode::off;
+            }
+            if (ImGui::Selectable(QCoreApplication::translate("imgui::extend", "ON").toUtf8(), trust_mode_ == mode::on))
+            {
+                trust_mode_ = mode::on;
+            }
+            if (ImGui::Selectable(QCoreApplication::translate("imgui::extend", "Trust by program").toUtf8(),
+                                  trust_mode_ == mode::with_program))
+            {
+                trust_mode_ = mode::with_program;
+            }
+            ImGui::EndCombo();
+        }
+    }
+
+    void
+    TrustModeConfig::restore(YAML::Node item)
+    {
+        trust_mode_ = (TrustModeConfig::mode)item["mode"].as<int>((int)trust_mode_);
+    }
+
+    void
+    TrustModeConfig::save(YAML::Node& conf) const
+    {
+        conf["mode"] = (int)trust_mode_;
+    }
+
+    std::string
+    TrustModeConfig::displayName() const
+    {
+        return QCoreApplication::translate("imgui::extend", "Trust Mode Config").toStdString();
+    }
+
     void
     ArrayBasicConfig::draw()
     {
@@ -29,7 +115,7 @@ namespace ImGui::extend
 
                 ImGui::Separator();
 
-                if (ImGui::extend::DeteleButton(
+                if (ImGui::extend::DeleteButton(
                         QCoreApplication::translate("imgui::extend", "Delete-[%1]").arg(label).toUtf8()))
                 {
                     m_items.erase(m_items.begin() + i);
@@ -42,7 +128,10 @@ namespace ImGui::extend
         }
         if (ImGui::Button(QCoreApplication::translate("imgui::extend", "Add").toUtf8()))
         {
-            m_items.push_back(m_createFunc());
+            if (m_createFunc)
+            {
+                m_items.push_back(m_createFunc());
+            }
         }
     }
 
@@ -64,10 +153,19 @@ namespace ImGui::extend
         m_items.clear();
         for (auto item : conf)
         {
-            auto confPtr = m_createFunc();
-            confPtr->restore(item);
-            m_items.push_back(confPtr);
+            if (m_createFunc)
+            {
+                auto confPtr = m_createFunc();
+                confPtr->restore(item);
+                m_items.push_back(confPtr);
+            }
         }
+    }
+
+    void
+    ArrayBasicConfig::setCreateFunc(CreateFunc&& handler)
+    {
+        m_createFunc = std::move(handler);
     }
 
     void

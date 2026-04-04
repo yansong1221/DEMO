@@ -1,5 +1,5 @@
 #pragma once
-#include "QtImGui.h"
+#include "imgui_extend/QtImGui.h"
 #include <QOpenGLExtraFunctions>
 #include <QOpenGLWidget>
 
@@ -17,7 +17,11 @@ class ImguiWidget
   protected:
     void initializeGL() override;
     void paintGL() override;
-    virtual void drawImgui() = 0;
+    virtual void drawImGui() = 0;
+    virtual void
+    endDrawImGui()
+    {
+    }
 
   protected:
     void showEvent(QShowEvent* event) override;

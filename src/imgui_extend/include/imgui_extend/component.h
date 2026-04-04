@@ -3,12 +3,13 @@
 #include "imgui.h"
 #include "imgui_stdlib.h"
 #include <filesystem>
+#include <limits>
 
 namespace ImGui::extend
 {
     IMGUI_EXTEND_API bool Button(char const* label, bool enabled = true, ImVec2 const& size = ImVec2(0, 0));
 
-    IMGUI_EXTEND_API bool DeteleButton(char const* label = nullptr,
+    IMGUI_EXTEND_API bool DeleteButton(char const* label = nullptr,
                                        bool enabled = true,
                                        ImVec2 const& size = ImVec2(0, 0));
 

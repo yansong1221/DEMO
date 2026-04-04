@@ -1,6 +1,4 @@
 #include "LogServiceImpl.h"
-#include "LogWidget.h"
-
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
@@ -306,35 +304,14 @@ LoggerImpl::warn(std::string const& message,
     log(spdlog::level::level_enum::warn, message, &sr, &ex);
 }
 
+LogServiceImpl::LogServiceImpl() : _terminal(10000) {}
+
 // LogServiceImpl implementation
 
-QtLogSink::QtLogSink(LogWidget* widget /*= nullptr*/) : widget_(widget) {}
+LogServiceImpl::~LogServiceImpl() { spdlog::shutdown(); }
 
 void
-QtLogSink::sink_it_(spdlog::details::log_msg const& msg)
-{
-    if (!widget_)
-    {
-        return;
-    }
-
-    spdlog::memory_buf_t formatted;
-    QtLogSink::formatter_->format(msg, formatted);
-    auto message = QString::fromUtf8(formatted.data(), formatted.size());
-
-    QMetaObject::invokeMethod(widget_, "");
-    QMetaObject::invokeMethod(
-        widget_,
-        [this, level = msg.level, message = std::move(message)]() { widget_->addLog(level, message); },
-        Qt::QueuedConnection);
-}
-
-void
-QtLogSink::flush_()
-{
-}
-
-LogServiceImpl::LogServiceImpl(LogWidget* widget) : m_logWidget(widget)
+LogServiceImpl::Init()
 {
     // 获取日志目录（应用程序目录下的 logs）
     QString logDir = QCoreApplication::applicationDirPath() + "/logs";
@@ -348,13 +325,8 @@ LogServiceImpl::LogServiceImpl(LogWidget* widget) : m_logWidget(widget)
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         console_sink->set_level(spdlog::level::trace);
 
-        auto ui_sink = std::make_shared<QtLogSink>(m_logWidget);
+        auto ui_sink = shared_from_this();
         ui_sink->set_level(spdlog::level::trace);
-        //QObject::connect(ui_sink.get(),
-        //                 &QtLogSink::messageReceived,
-        //                 m_logWidget,
-        //                 &LogWidget::addLog,
-        //                 Qt::QueuedConnection);
 
         auto file_name_pattern = fmt::format("{}\\%Y-%m-%d.log", logDir.toStdString());
 
@@ -374,15 +346,6 @@ LogServiceImpl::LogServiceImpl(LogWidget* widget) : m_logWidget(widget)
     {
         spdlog::error("File logger init failed: {}", ex.what());
     }
-}
-
-LogServiceImpl::~LogServiceImpl() { spdlog::shutdown(); }
-
-LogWidget*
-LogServiceImpl::getLogWidget() const
-{
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_logWidget;
 }
 
 std::shared_ptr<cppmicroservices::logservice::Logger>
@@ -527,4 +490,57 @@ LogServiceImpl::getBundleName(cppmicroservices::Bundle const& bundle) const
         return "system";
     }
     return QString::fromStdString(bundle.GetSymbolicName());
+}
+void
+LogServiceImpl::sink_it_(spdlog::details::log_msg const& msg)
+{
+    spdlog::memory_buf_t formatted;
+    formatter_->format(msg, formatted);
+    auto message = QString::fromUtf8(formatted.data(), formatted.size());
+
+    QMetaObject::invokeMethod(
+        this,
+        [this, level = msg.level, message = std::move(message)]()
+        {
+            switch (level)
+            {
+                case spdlog::level::trace:
+                    _terminal.intput(ImGuiAl::Log::Level::Trace, message.toStdString());
+                    break;
+                case spdlog::level::debug:
+                    _terminal.intput(ImGuiAl::Log::Level::Debug, message.toStdString());
+                    break;
+                case spdlog::level::info:
+                    _terminal.intput(ImGuiAl::Log::Level::Info, message.toStdString());
+                    break;
+                case spdlog::level::warn:
+                    _terminal.intput(ImGuiAl::Log::Level::Warning, message.toStdString());
+                    break;
+                case spdlog::level::err:
+                    _terminal.intput(ImGuiAl::Log::Level::Error, message.toStdString());
+                    break;
+                case spdlog::level::critical:
+                    _terminal.intput(ImGuiAl::Log::Level::Critical, message.toStdString());
+                    break;
+                default:
+                    break;
+            }
+        },
+        Qt::QueuedConnection);
+}
+
+void
+LogServiceImpl::flush_()
+{
+}
+
+void
+LogServiceImpl::drawImGui()
+{
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(tr("UILogOutput").toUtf8()))
+    {
+        _terminal.draw();
+    }
+    ImGui::End();
 }

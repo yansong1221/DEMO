@@ -23,16 +23,18 @@ SOFTWARE.
 */
 
 #pragma once
-
+#include "export.h"
 #include "imgui.h"
-#include "textselect.hpp"
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
+
+class TextSelect;
 
 namespace ImGuiAl
 {
@@ -71,6 +73,7 @@ namespace ImGuiAl
         };
 
         Crt(size_t const max_size);
+        virtual ~Crt();
 
         void setForegroundColor(ImU32 const color);
         void setMetaData(unsigned const meta_data);
@@ -103,10 +106,10 @@ namespace ImGuiAl
         unsigned _metaData;
         bool _scrollToBottom;
 
-        TextSelect _textSelect;
+        std::unique_ptr<TextSelect> _textSelect;
     };
 
-    class Log : protected Crt
+    class IMGUI_EXTEND_API Log : protected Crt
     {
       public:
         typedef Crt::Info Info;
@@ -220,7 +223,7 @@ namespace ImGuiAl
         ImGuiTextFilter _filter;
     };
 
-    class Terminal : protected Crt
+    class IMGUI_EXTEND_API Terminal : protected Crt
     {
       public:
         typedef Crt::Info Info;
