@@ -15,6 +15,14 @@ AOIEvent::AOIEvent(boost::asio::any_io_executor const& executor,
 boost::asio::awaitable<bool>
 AOIEvent::on_tick()
 {
+    auto aiAgentSer = tracker_.GetService();
+    if (!aiAgentSer)
+    {
+        common::Log::error("无法获取AI服务");
+        co_return true;
+    }
+    aiAgentSer->isTrustProgram("1", "2", "3");
+
     auto xml1 = std::filesystem::u8path(conf_->aoi_dir) / "xml1";
 
     for (auto const& xmlPath : common::SafeFile::walkFiles(xml1, { ".xml" }, true))

@@ -16,6 +16,11 @@ class Config : public ImGui::extend::GroupBasicConfig
         {
             return "AOI配置";
         }
+        std::string
+        configKey() const override
+        {
+            return "AoiConfig";
+        }
         void
         draw() override
         {
@@ -37,7 +42,9 @@ class Config : public ImGui::extend::GroupBasicConfig
       private:
         ImGui::extend::FileDialog fileDialog;
     };
-    Config();
+
+    std::string displayName() const override;
+    std::string configKey() const override;
 
   protected:
     std::vector<Item> prepareItems() override;
@@ -45,16 +52,21 @@ class Config : public ImGui::extend::GroupBasicConfig
   private:
     class AoiConfigs : public ImGui::extend::ArrayBasicConfig
     {
-        using ArrayBasicConfig::ArrayBasicConfig;
-
       public:
+        std::string displayName() const override;
         std::string
-        displayName() const override
+        configKey() const override
         {
-            return "AOI Configs";
+            return "AoiConfigs";
+        }
+        BasicConfigPtr
+        newConfigItem() override
+        {
+            return std::make_shared<AoiConfig>();
         }
     };
 
   public:
     AoiConfigs aoiConfigs;
+    ImGui::extend::CustomAngleConfig customAngle;
 };

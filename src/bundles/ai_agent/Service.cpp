@@ -5,38 +5,11 @@
 #include "common/misc.h"
 #include <boost/asio/dispatch.hpp>
 
-namespace detail
+Service::Service(cppmicroservices::BundleContext const& context, std::shared_ptr<ProgramTrustModeDrawer> trustMode)
+    : bundleContext_(context)
+    , trustMode_(trustMode)
 {
-    // static std::optional<boost::json::value>
-    // proc_json_response(httplib::client::http_client_pool::ClientHandle const& cli,
-    //                    std::string_view path,
-    //                    httplib::client::http_client::response_result const& response)
-    //{
-    //     if (!response)
-    //     {
-    //         common::Log::warn("给AI发送请求失败: http://{}:{}{} 错误: {}",
-    //                           cli->host(),
-    //                           cli->port(),
-    //                           path,
-    //                           misc::to_u8string(response.error().message()));
-    //         return std::nullopt;
-    //     }
-
-    //    if (response->result() != httplib::http::status::ok)
-    //    {
-    //        common::Log::warn("收到的AI回复出现错误: http://{}:{}{} 错误: {}",
-    //                          cli->host(),
-    //                          cli->port(),
-    //                          path,
-    //                          misc::to_u8string(httplib::http::obsolete_reason(response->result())));
-    //        return std::nullopt;
-    //    }
-    //    common::Log::debug("发送信息给AI成功:  http://{}:{}{}", cli->host(), cli->port(), path);
-    //    return response->body().as<httplib::body::json_body>();
-    //}
-} // namespace detail
-
-Service::Service(cppmicroservices::BundleContext const& context) : bundleContext_(context) {}
+}
 
 std::string
 Service::name() const
@@ -159,6 +132,12 @@ Service::coroDetect(std::shared_ptr<IDetectPanel> panel)
                       selfConfig_->ip,
                       selfConfig_->port);
     co_return;
+}
+
+bool
+Service::isTrustProgram(std::string const& line, std::string const& station, std::string const& name)
+{
+    return trustMode_->isTrust(line, station, name);
 }
 
 httplib::client::http_client_pool::ClientHandle

@@ -11,7 +11,6 @@
 class ProgramTrustModeDrawer
     : public QObject
     , public ImGui::extend::TableView
-    , public service::ITrustProgramService
     , public service::IImGuiDrawService
 {
     Q_OBJECT
@@ -47,7 +46,7 @@ class ProgramTrustModeDrawer
         no_trust,
     };
 
-    bool isTrust(std::string const& line, std::string const& station, std::string const& name) override;
+    bool isTrust(std::string const& line, std::string const& station, std::string const& name);
     void drawImGui() override;
 
     int columnCount() const override;

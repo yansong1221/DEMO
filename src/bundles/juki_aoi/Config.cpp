@@ -1,14 +1,29 @@
 #include "Config.h"
 
-Config::Config()
+std::string
+Config::displayName() const
 {
-    aoiConfigs.setCreateFunc<AoiConfig>();
+    return {};
+}
+
+std::string
+Config::configKey() const
+{
+    return {};
 }
 
 std::vector<ImGui::extend::GroupBasicConfig::Item>
 Config::prepareItems()
 {
     return {
-        { "aoi_configs", &aoiConfigs },
+        { &aoiConfigs },
+        { &customAngle },
     };
+}
+
+std::string
+Config::AoiConfigs::displayName() const
+{
+
+    return "AOI Configs";
 }
