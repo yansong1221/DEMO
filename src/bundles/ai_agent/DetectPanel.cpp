@@ -1,5 +1,7 @@
 #include "DetectPanel.h"
+#include "common/Base64.h"
 #include "common/Logger.h"
+#include "common/SafeFile.h"
 #include "common/misc.h"
 
 // namespace detail {
@@ -652,7 +654,14 @@ DetectWindowImpl::isAiOk() const
 void
 DetectWindowImpl::setImage(cv::Mat const& image)
 {
-    throw std::logic_error("The method or operation is not implemented.");
+    if (light() == "3D")
+    {
+        setBase64Image(common::base64::encode_base64_tif(image));
+    }
+    else
+    {
+        setBase64Image(common::base64::encode_base64_png(image));
+    }
 }
 
 void
@@ -664,7 +673,8 @@ DetectWindowImpl::setBase64Image(std::string&& base64_image)
 void
 DetectWindowImpl::setFileImage(std::string const& file_path)
 {
-    throw std::logic_error("The method or operation is not implemented.");
+    auto fileData = common::SafeFile::readAll(std::filesystem::u8path(file_path));
+    setBase64Image(common::base64::encode(fileData));
 }
 
 void
